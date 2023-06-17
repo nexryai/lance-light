@@ -1,7 +1,7 @@
 default:
-  allowIn: false
-  allowOut: true
-  allowFwd: false
+  allowAllIn: false
+  allowAllOut: true
+  allowAllFwd: false
 
 
 ports:

@@ -32,20 +32,3 @@ func getCloudflareIPs(version int) []string {
 	return ipList
 }
 
-
-func baseRules(allowOut bool, allowIn bool, allowFwd bool) string {
-	#ToDo
-}
-
-func secureRules(denyTorIPs bool, denyAbuseIPs bool, denyPublicProxyIPs bool, alwaysDenyIPs []string{}, alwaysDenyASNs []int{}) {
-	#ToDo
-}
-
-func portRules(port int, allowIPs string, allowInterface string, allowProto string) string {
-	#ToDo
-}
-
-
-func routerRules(lanInterface string, wanInterface string, forceDNS string) {
-	#ToDo
-}
