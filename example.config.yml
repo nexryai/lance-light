@@ -1,0 +1,31 @@
+default:
+  allowIn: false
+  allowOut: true
+  allowFwd: false
+
+
+ports:
+  - port: 80
+    allowIPs: "cloudflare"
+
+  - port: 443
+    allowIPs: "cloudflare"
+
+  - port: 22
+    proto: "TCP"
+    allowIPs: "0.0.0.0"
+    allowCountry: "JP"
+    denyFromCloudProviders: true
+    denyFromAbuseIPs: true
+    denyFromTorIPs: true
+  
+  - port: 3000
+    allowIPs: "local"
+    allowInterface: "eth1"
+
+
+router:
+  configAsRouter: true
+  wanInterface: "eth0"
+  lanInterface: "eth1"
+  forceDNS: "192.168.0.1"
