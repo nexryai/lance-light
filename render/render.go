@@ -47,15 +47,25 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	rules := []string{}
 
+	//テーブル作成
 	rules = append(rules, MkTableStart("filter"))
+
+	// INPUTルール作成（ToDo: ポート許可）
 	rules = append(rules, MkChainStart("input"))
 	rules = append(rules, MkBaseRules(config.Default.AllowAllIn, "input"))
 
+	// pingを許可するなら許可
 	if config.Default.AllowPing {
 		rules = append(rules, MkAllowPing())
 	}
+
+	// IPv6関係（ToDo: IPv6が無効なら追加しない）
+	rules = append(rules, MkAllowIPv6Ad())
 	
+	// INPUTチェーン終了
 	rules = append(rules, MkChainEnd())
+
+	// テーブル終了
 	rules = append(rules, MkTableEnd())
 
 	return rules

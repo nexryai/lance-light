@@ -16,8 +16,13 @@ func MkBaseRules(allowed bool, direction string) string {
 }
 
 func MkAllowPing() string {
+	// ToDo: レートリミット変えられるようにするべき？
 	rateLimitPerSec := 5
 	return fmt.Sprintf(`		icmp type echo-request limit rate %d second accept`, rateLimitPerSec)
+}
+
+func MkAllowIPv6Ad() string {
+	return "		ip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-router-advert, nd-neighbor-advert } accept"
 }
 
 /*
