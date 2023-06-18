@@ -10,7 +10,9 @@ import (
 // 成功したらTrue、そうでなければFalseを返す
 func wrtieRulesFromConfig(configFilePath string) bool {
 	rules := render.GenRulesFromConfig(configFilePath)
-	fmt.Printf("rules: %v\n", rules)
+	for _, item := range rules {
+        fmt.Println(item)
+    }
 	return true
 }
 

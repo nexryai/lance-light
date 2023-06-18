@@ -50,11 +50,12 @@ func LoadConfig(configFilePath string) Config {
 	// debug
 	fmt.Printf("%+v\n", config)
 
-	// portsの1番目の項目のallowIPsを取得
+	/*
 	if len(config.Ports) > 0 {
 		allowIPs := config.Ports[0].AllowIPs
 		fmt.Println("allowIPs:", allowIPs)
 	}
+	*/
 
 	return config
 }
