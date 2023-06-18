@@ -2,6 +2,7 @@ default:
   allowAllIn: false
   allowAllOut: true
   allowAllFwd: false
+  allowPing: true
 
 
 ports:

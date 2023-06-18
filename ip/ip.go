@@ -16,7 +16,7 @@ func isValidIP(ip string) bool {
 func CheckIPAddresses(ipAddresses []string) bool {
 	for _, ip := range ipAddresses {
 		if !isValidIP(ip) {
-			core.MsgDebug("Invalid IP: " + ip)
+			core.MsgWarn("Invalid IP: " + ip)
 			return false
 		}
 	}

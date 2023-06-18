@@ -3,12 +3,14 @@ package main
 import (
 	"lance-light/core"
 	"flag"
+	"fmt"
 	"lance-light/render"
 )
 
 // 成功したらTrue、そうでなければFalseを返す
 func wrtieRulesFromConfig(configFilePath string) bool {
-	render.GenRulesFromConfig(configFilePath)
+	rules := render.GenRulesFromConfig(configFilePath)
+	fmt.Printf("rules: %v\n", rules)
 	return true
 }
 

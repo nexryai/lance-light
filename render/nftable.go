@@ -1,10 +1,26 @@
 package render
 
-/*
-func BaseRules(allowOut bool, allowIn bool, allowFwd bool) string {
-	//#ToDo
+import (
+	"fmt"
+)
+
+
+func MkBaseRules(allowed bool, direction string) string {
+	policy := "drop"
+
+	if allowed {
+		policy = "accept"
+	}
+
+	return fmt.Sprintf(`		type filter hook %s priority 0; %s;`, direction, policy)
 }
 
+func MkAllowPing() string {
+	rateLimitPerSec := 5
+	return fmt.Sprintf(`		icmp type echo-request limit rate %d second accept`, rateLimitPerSec)
+}
+
+/*
 func SecureRules(denyTorIPs bool, denyAbuseIPs bool, denyPublicProxyIPs bool, alwaysDenyIPs []string{}, alwaysDenyASNs []int{}) {
 	//#ToDo
 }
@@ -19,18 +35,18 @@ func RouterRules(lanInterface string, wanInterface string, forceDNS string) {
 }
 */
 
-func ChainStart(name string) string {
+func MkChainStart(name string) string {
 	return "	chain " + name + " {"
 }
 
-func ChainEnd() string{
+func MkChainEnd() string{
 	return "	}"
 }
 
-func TableStart(name string) string {
+func MkTableStart(name string) string {
 	return "table inet " + name + " {"
 }
 
-func TableEnd() string {
+func MkTableEnd() string {
 	return "}"
 }

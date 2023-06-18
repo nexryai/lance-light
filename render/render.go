@@ -31,7 +31,7 @@ func getCloudflareIPs(version int) []string {
 
 	// レスポンスボディを文字列に変換し、改行文字で分割してリストに代入
 	CfIpList := strings.Split(string(body), "\n")
-	// CfIpList=[]string{"192.168.0.1", "10.0.0.1", "256.0.0.1", "172.16.0.1"}
+	//CfIpList=[]string{"192.168.0.1", "10.0.0.1", "256.0.0.1", "172.16.0.1"}
 
 	if !ip.CheckIPAddresses(CfIpList) {
 		core.ExitOnError(errors.New("Invalid IP"), "An error occurred while retrieving the IP list from Cloudflare. The request was successful, but an invalid IP address was detected.")
@@ -41,7 +41,22 @@ func getCloudflareIPs(version int) []string {
 }
 
 
+
 func GenRulesFromConfig(configFilePath string) []string {
-	core.LoadConfig(configFilePath)
-	return getCloudflareIPs(4)
+	config := core.LoadConfig(configFilePath)
+
+	rules := []string{}
+
+	rules = append(rules, MkTableStart("filter"))
+	rules = append(rules, MkChainStart("input"))
+	rules = append(rules, MkBaseRules(config.Default.AllowAllIn, "input"))
+
+	if config.Default.AllowPing {
+		rules = append(rules, MkAllowPing())
+	}
+	
+	rules = append(rules, MkChainEnd())
+	rules = append(rules, MkTableEnd())
+
+	return rules
 }
