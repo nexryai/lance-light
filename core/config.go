@@ -38,12 +38,10 @@ type RouterConfig struct {
 	ForceDNS       string `yaml:"forceDNS"`
 }
 
-func LoadConfig() {
+func LoadConfig(configFilePath string) Config {
 	// ファイルの読み込み
-	data, err := ioutil.ReadFile("config.yml")
-	if err != nil {
-		log.Fatalf("Failed to read config.yml file: %v", err)
-	}
+	data, err := ioutil.ReadFile(configFilePath)
+	ExitOnError(err)
 
 	// ファイルの内容を構造体にマッピング
 	var config Config
@@ -60,4 +58,6 @@ func LoadConfig() {
 		allowIPs := config.Ports[0].AllowIPs
 		fmt.Println("allowIPs:", allowIPs)
 	}
+
+	return config
 }

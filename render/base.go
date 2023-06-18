@@ -32,3 +32,5 @@ func getCloudflareIPs(version int) []string {
 	return ipList
 }
 
+
+func GenRulesFromConfig()

@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"os"
 )
 
 var reset  = "\033[0m"
@@ -17,4 +18,14 @@ func MsgInfo(text string) {
 
 func MsgErr(text string) {
 	fmt.Println(red + "ERROR: " + text + reset)
+}
+
+func ExitOnError(err error) {
+	if err != nil {
+		message := fmt.Sprintf("Fatal error: %v", err)
+		MsgErr(message)
+		os.Exit(1)
+	}
+
+	return
 }
