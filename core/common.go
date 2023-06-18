@@ -8,8 +8,8 @@ import (
 var reset  = "\033[0m"
 var red    = "\033[31m"
 var green  = "\033[32m"
-//var Yellow = "\033[33m"
-//var Blue   = "\033[34m"
+var yellow = "\033[33m"
+var gray   = "\033[37m"
 
 
 func MsgInfo(text string) {
@@ -17,13 +17,26 @@ func MsgInfo(text string) {
 }
 
 func MsgErr(text string) {
-	fmt.Println(red + "ERROR: " + text + reset)
+	fmt.Println(red + "✘ ERROR: " + text + reset)
 }
 
-func ExitOnError(err error) {
+func MsgWarn(text string) {
+	fmt.Println(yellow + "⚠ WARNING: " + reset + text)
+}
+
+func MsgDebug(text string) {
+	fmt.Println(gray + "DEBUG: " + text + reset)
+}
+
+func MsgDetail(text string) {
+	fmt.Println(gray + "  ↳ " + reset + text)
+}
+
+func ExitOnError(err error, message string) {
 	if err != nil {
-		message := fmt.Sprintf("Fatal error: %v", err)
-		MsgErr(message)
+		errorInfo := fmt.Sprintf("Fatal error: %v", err)
+		MsgErr(errorInfo)
+		MsgDetail(message)
 		os.Exit(1)
 	}
 

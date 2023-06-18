@@ -3,14 +3,12 @@ package main
 import (
 	"lance-light/core"
 	"flag"
-	"fmt"
-	//"lance-light/render"
+	"lance-light/render"
 )
 
 // 成功したらTrue、そうでなければFalseを返す
 func wrtieRulesFromConfig(configFilePath string) bool {
-	config := core.LoadConfig(configFilePath)
-	fmt.Printf("%+v\n", config)
+	render.GenRulesFromConfig(configFilePath)
 	return true
 }
 
@@ -31,8 +29,6 @@ func main() {
 	if configFilePath == "" {
 		configFilePath = "/etc/lance.yml"
 	}
-
-	fmt.Println("指定されたファイルパス:", configFilePath)
 
 	wrtieRulesFromConfig(configFilePath)
 }

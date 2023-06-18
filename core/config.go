@@ -3,8 +3,6 @@ package core
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -41,16 +39,14 @@ type RouterConfig struct {
 func LoadConfig(configFilePath string) Config {
 	// ファイルの読み込み
 	data, err := ioutil.ReadFile(configFilePath)
-	ExitOnError(err)
+	ExitOnError(err, "An error occurred while loading the configuration file. Are the configuration file paths and permissions correct?")
 
 	// ファイルの内容を構造体にマッピング
 	var config Config
 	err = yaml.Unmarshal(data, &config)
-	if err != nil {
-		log.Fatalf("Failed to unmarshal config: %v", err)
-	}
+	ExitOnError(err, "The configuration file was loaded successfully, but the mapping failed.")
 
-	// 読み込んだ構造体の内容を表示
+	// debug
 	fmt.Printf("%+v\n", config)
 
 	// portsの1番目の項目のallowIPsを取得

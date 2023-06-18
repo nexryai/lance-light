@@ -19,18 +19,18 @@ func RouterRules(lanInterface string, wanInterface string, forceDNS string) {
 }
 */
 
-func ChainStart(name) {
+func ChainStart(name string) string {
 	return "	chain " + name + " {"
 }
 
-func ChainEnd() {
+func ChainEnd() string{
 	return "	}"
 }
 
-func TableStart(name) {
+func TableStart(name string) string {
 	return "table inet " + name + " {"
 }
 
-func TableEnd() {
+func TableEnd() string {
 	return "}"
 }
