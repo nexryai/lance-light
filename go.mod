@@ -1,4 +1,4 @@
-module as4guard
+module lance-light
 
 go 1.18
 

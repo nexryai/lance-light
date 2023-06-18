@@ -1,7 +1,7 @@
 package render
 
 import (
-	"as4guard/core"
+	"lance-light/core"
 	"io/ioutil"
 	"net/http"
 	"strings"
