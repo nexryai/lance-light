@@ -93,7 +93,6 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	// 許可したポートをallow
 	for _, allowPort := range config.Ports {
-
 		var allowIP string
 
 		if allowPort.AllowIP == "cloudflare" {
@@ -111,6 +110,21 @@ func GenRulesFromConfig(configFilePath string) []string {
 	}
 
 	// INPUTチェーン終了
+	rules = append(rules, MkChainEnd())
+
+	// OUTPUTチェーン
+	rules = append(rules, MkChainStart("output"))
+	rules = append(rules, MkBaseRules(config.Default.AllowAllOut, "output"))
+	rules = append(rules, MkChainEnd())
+
+	// FORWARDチェーン
+	rules = append(rules, MkChainStart("forward"))
+
+	if config.Default.AllowAllFwd {
+		core.MsgWarn("Forwarding is allowed by default. This is an unsafe setting and you usually don't need to do this.")
+	}
+
+	rules = append(rules, MkBaseRules(config.Default.AllowAllFwd, "forward"))
 	rules = append(rules, MkChainEnd())
 
 	// テーブル終了
