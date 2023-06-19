@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -53,9 +52,6 @@ func LoadConfig(configFilePath string) Config {
 	var config Config
 	err = yaml.Unmarshal(data, &config)
 	ExitOnError(err, "The configuration file was loaded successfully, but the mapping failed.")
-
-	// debug
-	fmt.Printf("%+v\n", config)
 
 	/*
 		if len(config.Ports) > 0 {
