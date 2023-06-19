@@ -2,14 +2,15 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 type Config struct {
-	Default DefaultConfig `yaml:"default"`
-	Ports   []PortConfig  `yaml:"ports"`
-	Router  RouterConfig  `yaml:"router"`
+	Default  DefaultConfig  `yaml:"default"`
+	Security SecurityConfig `yaml:"security"`
+	Ports    []PortConfig   `yaml:"ports"`
+	Router   RouterConfig   `yaml:"router"`
 }
 
 type DefaultConfig struct {
@@ -19,15 +20,21 @@ type DefaultConfig struct {
 	AllowPing   bool `yaml:"allowPing"`
 }
 
+type SecurityConfig struct {
+	AlwaysDenyIP      []string `yaml:"alwaysDenyIP"`
+	AlwaysDenyASN     []string `yaml:"alwaysDenyASN"`
+	AlwaysDenyAbuseIP bool     `yaml:"alwaysDenyAbuseIP"`
+	AlwaysDenyTor     bool     `yaml:"alwaysDenyTor"`
+}
+
 type PortConfig struct {
-	Port                  int    `yaml:"port"`
-	Proto                 string `yaml:"proto"`
-	AllowIPs              string `yaml:"allowIPs"`
-	AllowCountry          string `yaml:"allowCountry"`
-	DenyFromCloudProviders bool   `yaml:"denyFromCloudProviders"`
-	DenyFromAbuseIPs      bool   `yaml:"denyFromAbuseIPs"`
-	DenyFromTorIPs        bool   `yaml:"denyFromTorIPs"`
-	AllowInterface        string `yaml:"allowInterface"`
+	Port             int    `yaml:"port"`
+	Proto            string `yaml:"proto"`
+	AllowIPs         string `yaml:"allowIPs"`
+	AllowCountry     string `yaml:"allowCountry"`
+	DenyFromAbuseIPs bool   `yaml:"denyFromAbuseIPs"`
+	DenyFromTorIPs   bool   `yaml:"denyFromTorIPs"`
+	AllowInterface   string `yaml:"allowInterface"`
 }
 
 type RouterConfig struct {
@@ -51,10 +58,10 @@ func LoadConfig(configFilePath string) Config {
 	fmt.Printf("%+v\n", config)
 
 	/*
-	if len(config.Ports) > 0 {
-		allowIPs := config.Ports[0].AllowIPs
-		fmt.Println("allowIPs:", allowIPs)
-	}
+		if len(config.Ports) > 0 {
+			allowIPs := config.Ports[0].AllowIPs
+			fmt.Println("allowIPs:", allowIPs)
+		}
 	*/
 
 	return config

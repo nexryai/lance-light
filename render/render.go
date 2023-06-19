@@ -34,7 +34,7 @@ func getCloudflareIPs(version int) []string {
 	//CfIpList=[]string{"192.168.0.1", "10.0.0.1", "256.0.0.1", "172.16.0.1"}
 
 	if !ip.CheckIPAddresses(CfIpList) {
-		core.ExitOnError(errors.New("Invalid IP"), "An error occurred while retrieving the IP list from Cloudflare. The request was successful, but an invalid IP address was detected.")
+		core.ExitOnError(errors.New("invalid IP from API"), "An error occurred while retrieving the IP list from Cloudflare. The request was successful, but an invalid IP address was detected.")
 	}
 
 	return CfIpList
@@ -52,12 +52,30 @@ func GenRulesFromConfig(configFilePath string) []string {
 	rules = append(rules, MkChainStart("input"))
 	rules = append(rules, MkBaseRules(config.Default.AllowAllIn, "input"))
 
-	// これはｋ
+	// これは変えられるようにするべき？
 	rules = append(rules, MkBaseInputRules(true, true, false))
+
+	alwaysDenyIP := []string{}
+
+	alwaysDenyIP = append(alwaysDenyIP, config.Security.AlwaysDenyIP...)
+
+	// alwaysDenyASNをIPのCIDRに変換
+	for _, denyASN := range config.Security.AlwaysDenyASN {
+		alwaysDenyIP = append(alwaysDenyIP, ip.GetIpRangeFromASN(denyASN)...)
+	}
+
+	// alwaysDenyIPを拒否
+	for _, denyIP := range alwaysDenyIP {
+		rules = append(rules, MkDenyIP(denyIP))
+	}
 
 	// pingを許可するなら許可
 	if config.Default.AllowPing {
 		rules = append(rules, MkAllowPing())
+	}
+
+	if config.Security.AlwaysDenyAbuseIP {
+		core.MsgDebug("Always Deny AbuseIP")
 	}
 
 	// IPv6関係（ToDo: IPv6が無効なら追加しない）

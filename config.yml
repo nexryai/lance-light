@@ -4,6 +4,11 @@ default:
   allowAllFwd: false
   allowPing: true
 
+security:
+  alwaysDenyIP: ["1.1.1.1"]
+  alwaysDenyASN: ["53667", "397702"]
+  alwaysDenyAbuseIP: true
+  alwaysDenyTor: false
 
 ports:
   - port: 80
@@ -16,7 +21,6 @@ ports:
     proto: "TCP"
     allowIPs: "0.0.0.0"
     allowCountry: "JP"
-    denyFromCloudProviders: true
     denyFromAbuseIPs: true
     denyFromTorIPs: true
   
@@ -30,3 +34,6 @@ router:
   wanInterface: "eth0"
   lanInterface: "eth1"
   forceDNS: "192.168.0.1"
+
+api:
+  abuseIPDBApiKey: "CHANGEME"
