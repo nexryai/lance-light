@@ -2,7 +2,15 @@ package render
 
 import (
 	"fmt"
+	"strings"
 )
+
+func MkDefine(name string, obj []string) string {
+	joinedString := strings.Join(obj, ", ")
+
+	rule := fmt.Sprintf("define %s = { %s }", name, joinedString)
+	return rule
+}
 
 func MkBaseRules(allowed bool, direction string) string {
 	policy := "drop"
@@ -35,6 +43,10 @@ func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid boo
 	return fmt.Sprintf(`		ct state vmap { established : %s, related : %s, invalid : %s } `, establishedRule, relatedRule, invalidRule)
 }
 
+func MkAllowLoopbackInterface() string {
+	return "		iif lo accept"
+}
+
 func MkAllowPing() string {
 	// ToDo: レートリミット変えられるようにするべき？
 	rateLimitPerSec := 5
@@ -49,18 +61,31 @@ func MkDenyIP(denyIp string) string {
 	return fmt.Sprintf(`		ip saddr %s drop`, denyIp)
 }
 
+func MkAllowPort(port int, allowIP string, allowInterface string, allowProto string) string {
+	rule := "		"
+
+	if allowInterface != "" {
+		rule += fmt.Sprintf("iifname \"%s\" ", allowInterface)
+	}
+
+	rule += fmt.Sprintf("%s ", allowProto)
+
+	if allowIP != "" {
+		rule += fmt.Sprintf("saddr %s ", allowIP)
+	}
+
+	rule += fmt.Sprintf("dport %d accept", port)
+
+	return rule
+}
+
 /*
-func SecureRules(denyTorIPs bool, denyAbuseIPs bool, denyPublicProxyIPs bool, alwaysDenyIPs []string{}, alwaysDenyASNs []int{}) {
-	//#ToDo
+func MkRouterRules(lanInterface string, wanInterface string, forceDNS string) string {
+	//ToDo
 }
 
-func PortRules(port int, allowIPs string, allowInterface string, allowProto string) string {
-	//#ToDo
-}
-
-
-func RouterRules(lanInterface string, wanInterface string, forceDNS string) {
-	//#ToDo
+func MkForceDNS(dnsAddress string) string {
+	//ToDo
 }
 */
 

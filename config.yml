@@ -12,20 +12,20 @@ security:
 
 ports:
   - port: 80
-    allowIPs: "cloudflare"
+    allowIP: "cloudflare"
 
   - port: 443
-    allowIPs: "cloudflare"
+    allowIP: "cloudflare"
 
   - port: 22
-    proto: "TCP"
-    allowIPs: "0.0.0.0"
+    proto: "tcp"
+    allowIP: "0.0.0.0"
     allowCountry: "JP"
     denyFromAbuseIPs: true
     denyFromTorIPs: true
   
   - port: 3000
-    allowIPs: "local"
+    allowIP: "local"
     allowInterface: "eth1"
 
 

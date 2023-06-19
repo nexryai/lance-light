@@ -30,20 +30,29 @@ func getCloudflareIPs(version int) []string {
 	core.ExitOnError(err, "An unexpected error occurred while retrieving Cloudflare's IP address. The request was successful, but an error occurred while reading the response body.")
 
 	// レスポンスボディを文字列に変換し、改行文字で分割してリストに代入
-	CfIpList := strings.Split(string(body), "\n")
+	cfIpList := strings.Split(string(body), "\n")
 	//CfIpList=[]string{"192.168.0.1", "10.0.0.1", "256.0.0.1", "172.16.0.1"}
 
-	if !ip.CheckIPAddresses(CfIpList) {
+	if !ip.CheckIPAddresses(cfIpList) {
 		core.ExitOnError(errors.New("invalid IP from API"), "An error occurred while retrieving the IP list from Cloudflare. The request was successful, but an invalid IP address was detected.")
 	}
 
-	return CfIpList
+	return cfIpList
+}
+
+func getAllCloudflareIPs() []string {
+	cfAllIpList := getCloudflareIPs(4)
+	cfAllIpList = append(cfAllIpList, getCloudflareIPs(6)...)
+	return cfAllIpList
 }
 
 func GenRulesFromConfig(configFilePath string) []string {
 	config := core.LoadConfig(configFilePath)
 
 	rules := []string{}
+
+	// 定義
+	rules = append(rules, MkDefine("CLOUDFLARE", getAllCloudflareIPs()))
 
 	//テーブル作成
 	rules = append(rules, MkTableStart("filter"))
@@ -54,6 +63,7 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	// これは変えられるようにするべき？
 	rules = append(rules, MkBaseInputRules(true, true, false))
+	rules = append(rules, MkAllowLoopbackInterface())
 
 	alwaysDenyIP := []string{}
 
@@ -80,6 +90,25 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	// IPv6関係（ToDo: IPv6が無効なら追加しない）
 	rules = append(rules, MkAllowIPv6Ad())
+
+	// 許可したポートをallow
+	for _, allowPort := range config.Ports {
+
+		var allowIP string
+
+		if allowPort.AllowIP == "cloudflare" {
+			allowIP = "$CLOUDFLARE"
+		} else {
+			allowIP = allowPort.AllowIP
+		}
+
+		if allowPort.Proto == "" {
+			rules = append(rules, MkAllowPort(allowPort.Port, allowIP, allowPort.AllowInterface, "tcp"))
+			rules = append(rules, MkAllowPort(allowPort.Port, allowIP, allowPort.AllowInterface, "udp"))
+		} else {
+			rules = append(rules, MkAllowPort(allowPort.Port, allowIP, allowPort.AllowInterface, allowPort.Proto))
+		}
+	}
 
 	// INPUTチェーン終了
 	rules = append(rules, MkChainEnd())

@@ -30,7 +30,7 @@ type SecurityConfig struct {
 type PortConfig struct {
 	Port             int    `yaml:"port"`
 	Proto            string `yaml:"proto"`
-	AllowIPs         string `yaml:"allowIPs"`
+	AllowIP          string `yaml:"allowIP"`
 	AllowCountry     string `yaml:"allowCountry"`
 	DenyFromAbuseIPs bool   `yaml:"denyFromAbuseIPs"`
 	DenyFromTorIPs   bool   `yaml:"denyFromTorIPs"`

@@ -42,6 +42,7 @@ func GetIpRangeFromASN(asn string) []string {
 		for _, prefix := range data.Data.Prefixes {
 			ipCidr = append(ipCidr, prefix.Prefix)
 		}
+
 	} else {
 		core.ExitOnError(errors.New("request failed"), "Failed to convert ASN to IP CIDR. An error code was returned from the server.")
 	}
