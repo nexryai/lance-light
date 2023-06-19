@@ -1,21 +1,20 @@
 package main
 
 import (
-	"lance-light/core"
 	"flag"
 	"fmt"
+	"lance-light/core"
 	"lance-light/render"
 )
 
 // 成功したらTrue、そうでなければFalseを返す
-func wrtieRulesFromConfig(configFilePath string) bool {
+func writeRulesFromConfig(configFilePath string) bool {
 	rules := render.GenRulesFromConfig(configFilePath)
 	for _, item := range rules {
-        fmt.Println(item)
-    }
+		fmt.Println(item)
+	}
 	return true
 }
-
 
 func main() {
 	core.MsgInfo("LanceLight ver0.01")
@@ -34,5 +33,5 @@ func main() {
 		configFilePath = "/etc/lance.yml"
 	}
 
-	wrtieRulesFromConfig(configFilePath)
+	writeRulesFromConfig(configFilePath)
 }

@@ -1,10 +1,10 @@
 package render
 
 import (
+	"errors"
+	"io/ioutil"
 	"lance-light/core"
 	"lance-light/ip"
-	"io/ioutil"
-	"errors"
 	"net/http"
 	"os"
 	"strconv"
@@ -40,8 +40,6 @@ func getCloudflareIPs(version int) []string {
 	return CfIpList
 }
 
-
-
 func GenRulesFromConfig(configFilePath string) []string {
 	config := core.LoadConfig(configFilePath)
 
@@ -54,6 +52,9 @@ func GenRulesFromConfig(configFilePath string) []string {
 	rules = append(rules, MkChainStart("input"))
 	rules = append(rules, MkBaseRules(config.Default.AllowAllIn, "input"))
 
+	// これはｋ
+	rules = append(rules, MkBaseInputRules(true, true, false))
+
 	// pingを許可するなら許可
 	if config.Default.AllowPing {
 		rules = append(rules, MkAllowPing())
@@ -61,7 +62,7 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	// IPv6関係（ToDo: IPv6が無効なら追加しない）
 	rules = append(rules, MkAllowIPv6Ad())
-	
+
 	// INPUTチェーン終了
 	rules = append(rules, MkChainEnd())
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 )
 
-
 func MkBaseRules(allowed bool, direction string) string {
 	policy := "drop"
 
@@ -15,6 +14,27 @@ func MkBaseRules(allowed bool, direction string) string {
 	return fmt.Sprintf(`		type filter hook %s priority 0; %s;`, direction, policy)
 }
 
+func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid bool) string {
+
+	establishedRule := "drop"
+	relatedRule := "drop"
+	invalidRule := "drop"
+
+	if allowEstablished {
+		establishedRule = "accept"
+	}
+
+	if allowRelated {
+		relatedRule = "accept"
+	}
+
+	if allowInvalid {
+		invalidRule = "accept"
+	}
+
+	return fmt.Sprintf(`		ct state vmap { established : %s, related : %s, invalid : %s } `, establishedRule, relatedRule, invalidRule)
+}
+
 func MkAllowPing() string {
 	// ToDo: レートリミット変えられるようにするべき？
 	rateLimitPerSec := 5
@@ -23,6 +43,10 @@ func MkAllowPing() string {
 
 func MkAllowIPv6Ad() string {
 	return "		ip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-router-advert, nd-neighbor-advert } accept"
+}
+
+func MkDenyIP(denyIp string) string {
+	return fmt.Sprintf(`		ip saddr %s drop`, denyIp)
 }
 
 /*
@@ -44,7 +68,7 @@ func MkChainStart(name string) string {
 	return "	chain " + name + " {"
 }
 
-func MkChainEnd() string{
+func MkChainEnd() string {
 	return "	}"
 }
 
