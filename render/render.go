@@ -155,7 +155,8 @@ func GenRulesFromConfig(configFilePath string) []string {
 		rules = append(rules,
 			MkChainStart("prerouting"),
 			MkBaseRoutingRule("prerouting"),
-			MkForceDNS(config.Router.ForceDNS, config.Router.LANInterface, "udp"))
+			MkForceDNS(config.Router.ForceDNS, config.Router.LANInterface, "udp"),
+			MkForceDNS(config.Router.ForceDNS, config.Router.LANInterface, "tcp"))
 	}
 
 	// テーブル終了
