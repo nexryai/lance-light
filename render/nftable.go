@@ -97,7 +97,7 @@ func MkMasquerade(srcIP string, outInterface string) string {
 }
 
 func MkForceDNS(dnsAddress string, lanInterface string, protocol string) string {
-	return fmt.Sprintf("\t\tiifname \"%s\" meta l4proto %s ip saddr != 127.0.0.1 ip daddr != %s udp dport 53 dnat to %s", lanInterface, protocol, dnsAddress, dnsAddress)
+	return fmt.Sprintf("\t\tiifname \"%s\" meta l4proto %s ip saddr != 127.0.0.1 ip daddr != %s %s dport 53 dnat to %s", lanInterface, protocol, dnsAddress, protocol, dnsAddress)
 }
 
 // チェーンとテーブル関係
