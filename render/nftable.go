@@ -54,7 +54,7 @@ func MkAllowLoopbackInterface() string {
 func MkAllowPing() string {
 	// ToDo: レートリミット変えられるようにするべき？
 	rateLimitPerSec := 5
-	return fmt.Sprintf(`		icmp type echo-request limit rate %d second accept`, rateLimitPerSec)
+	return fmt.Sprintf(`		icmp type echo-request limit rate %d/second accept`, rateLimitPerSec)
 }
 
 func MkAllowIPv6Ad() string {
