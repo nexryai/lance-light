@@ -8,7 +8,13 @@ import (
 )
 
 // 成功したらTrue、そうでなければFalseを返す
-func writeRulesFromConfig(configFilePath string) bool {
+func writeRulesFromConfig(configFilePath string, nftableFilePath string) bool {
+	rules := render.GenRulesFromConfig(configFilePath)
+	core.WriteToFile(rules, nftableFilePath)
+	return true
+}
+
+func exportRulesFromConfig(configFilePath string) bool {
 	rules := render.GenRulesFromConfig(configFilePath)
 	for _, item := range rules {
 		fmt.Println(item)
@@ -19,19 +25,17 @@ func writeRulesFromConfig(configFilePath string) bool {
 func main() {
 	core.MsgInfo("LanceLight ver0.01")
 
-	// ファイルパスを格納するための変数を定義
-	var configFilePath string
+	configFilePath := flag.String("f", "/etc/lance.yml", "Path of config.yml")
+	nftableFilePath := flag.String("o", "/etc/nftables.conf", "Path of nftables.conf")
 
-	flag.StringVar(&configFilePath, "f", "", "Path of config.yml")
-	flag.StringVar(&configFilePath, "file", "", "Path of config.yml")
-
-	// コマンドライン引数の解析
 	flag.Parse()
 
-	// filePath の値を使用して何かしらの処理を行う
-	if configFilePath == "" {
-		configFilePath = "/etc/lance.yml"
+	operation := flag.Arg(0)
+
+	if operation == "apply" {
+		writeRulesFromConfig(*configFilePath, *nftableFilePath)
+	} else if operation == "export" {
+		exportRulesFromConfig(*configFilePath)
 	}
 
-	writeRulesFromConfig(configFilePath)
 }
