@@ -6,11 +6,10 @@ import (
 )
 
 type Config struct {
-	Default       DefaultConfig       `yaml:"default"`
-	Security      SecurityConfig      `yaml:"security"`
-	Ports         []PortConfig        `yaml:"ports"`
-	Router        RouterConfig        `yaml:"router"`
-	Compatibility CompatibilityConfig `yaml:"compatibility"`
+	Default  DefaultConfig  `yaml:"default"`
+	Security SecurityConfig `yaml:"security"`
+	Ports    []PortConfig   `yaml:"ports"`
+	Router   RouterConfig   `yaml:"router"`
 }
 
 type DefaultConfig struct {
@@ -44,11 +43,6 @@ type RouterConfig struct {
 	WANInterface          string `yaml:"wanInterface"`
 	LANInterface          string `yaml:"lanInterface"`
 	ForceDNS              string `yaml:"forceDNS"`
-}
-
-type CompatibilityConfig struct {
-	EnableWireguardSupport bool     `yaml:"enableWireguardSupport"`
-	WireguardInterfaces    []string `yaml:"wireguardInterfaces"`
 }
 
 func LoadConfig(configFilePath string) Config {
