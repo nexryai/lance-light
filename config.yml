@@ -3,6 +3,7 @@ default:
   allowAllOut: true
   allowAllFwd: false
   allowPing: true
+  enableIPv6: true
 
 security:
   alwaysDenyIP: ["1.1.1.1"]
@@ -31,6 +32,7 @@ ports:
 
 router:
   configAsRouter: true
+  privateNetwork: "192.168.10.0/24"
   wanInterface: "eth0"
   lanInterface: "eth1"
   forceDNS: "192.168.0.1"

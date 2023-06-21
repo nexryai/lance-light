@@ -57,13 +57,15 @@ func GenRulesFromConfig(configFilePath string) []string {
 	//テーブル作成
 	rules = append(rules, MkTableStart("filter"))
 
-	// INPUTルール作成（ToDo: ポート許可）
-	rules = append(rules, MkChainStart("input"))
-	rules = append(rules, MkBaseRules(config.Default.AllowAllIn, "input"))
+	// INPUTルール作成
+	rules = append(rules,
+		MkChainStart("input"),
+		MkBaseRules(config.Default.AllowAllIn, "input"))
 
 	// これは変えられるようにするべき？
-	rules = append(rules, MkBaseInputRules(true, true, false))
-	rules = append(rules, MkAllowLoopbackInterface())
+	rules = append(rules,
+		MkBaseInputRules(true, true, false),
+		MkAllowLoopbackInterface())
 
 	alwaysDenyIP := []string{}
 
@@ -113,9 +115,9 @@ func GenRulesFromConfig(configFilePath string) []string {
 	rules = append(rules, MkChainEnd())
 
 	// OUTPUTチェーン
-	rules = append(rules, MkChainStart("output"))
-	rules = append(rules, MkBaseRules(config.Default.AllowAllOut, "output"))
-	rules = append(rules, MkChainEnd())
+	rules = append(rules, MkChainStart("output"),
+		MkBaseRules(config.Default.AllowAllOut, "output"),
+		MkChainEnd())
 
 	// FORWARDチェーン
 	rules = append(rules, MkChainStart("forward"))
@@ -125,7 +127,23 @@ func GenRulesFromConfig(configFilePath string) []string {
 	}
 
 	rules = append(rules, MkBaseRules(config.Default.AllowAllFwd, "forward"))
+
+	if config.Router.ConfigAsRouter {
+		rules = append(rules,
+			MkBaseInputRules(true, true, false),
+			MkAllowFwd(config.Router.LANInterface))
+	}
+
 	rules = append(rules, MkChainEnd())
+
+	// POSTROUTINGチェーン
+	if config.Router.ConfigAsRouter {
+		rules = append(rules,
+			MkChainStart("postrouting"),
+			MkBasePostroutingRule(),
+			MkMasquerade(config.Router.PrivateNetworkAddress, config.Router.WANInterface),
+			MkChainEnd())
+	}
 
 	// テーブル終了
 	rules = append(rules, MkTableEnd())

@@ -79,11 +79,20 @@ func MkAllowPort(port int, allowIP string, allowInterface string, allowProto str
 	return rule
 }
 
-/*
-func MkRouterRules(lanInterface string, wanInterface string, forceDNS string) string {
-	//ToDo
+// ルーター用ルール
+func MkAllowFwd(allowInterface string) string {
+	return fmt.Sprintf("\t\tiifname %s accept", allowInterface)
 }
 
+func MkBasePostroutingRule() string {
+	return "\t\ttype nat hook postrouting priority 100; policy accept;"
+}
+
+func MkMasquerade(srcIP string, outInterface string) string {
+	return fmt.Sprintf("\t\tip saddr %s oifname %s masquerade", srcIP, outInterface)
+}
+
+/*
 func MkForceDNS(dnsAddress string) string {
 	//ToDo
 }

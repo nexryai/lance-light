@@ -17,6 +17,7 @@ type DefaultConfig struct {
 	AllowAllOut bool `yaml:"allowAllOut"`
 	AllowAllFwd bool `yaml:"allowAllFwd"`
 	AllowPing   bool `yaml:"allowPing"`
+	EnableIPv6  bool `yaml:"enableIPv6"`
 }
 
 type SecurityConfig struct {
@@ -37,10 +38,11 @@ type PortConfig struct {
 }
 
 type RouterConfig struct {
-	ConfigAsRouter bool   `yaml:"configAsRouter"`
-	WANInterface   string `yaml:"wanInterface"`
-	LANInterface   string `yaml:"lanInterface"`
-	ForceDNS       string `yaml:"forceDNS"`
+	ConfigAsRouter        bool   `yaml:"configAsRouter"`
+	PrivateNetworkAddress string `yaml:"privateNetwork"`
+	WANInterface          string `yaml:"wanInterface"`
+	LANInterface          string `yaml:"lanInterface"`
+	ForceDNS              string `yaml:"forceDNS"`
 }
 
 func LoadConfig(configFilePath string) Config {
