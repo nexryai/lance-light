@@ -26,3 +26,9 @@ Cloudflareからのアクセスのみを許可したり、特定のインター�
 
 #### ファイルに書き込む
 `go run main.go -f "config.yml" -o "/etc/nftables.conf" apply`
+
+
+### 既知の問題
+
+#### Dockerと競合する
+Dockerは勝手にiptable(nftable)のルールを書き換えるのでlanceによって生成された設定ファイルと競合します。すべてのコンテナにホストネットワークモードを使用することで回避できます。

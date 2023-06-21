@@ -72,13 +72,13 @@ func MkAllowPort(port int, allowIP string, allowInterface string, allowProto str
 		rule += fmt.Sprintf("iifname \"%s\" ", allowInterface)
 	}
 
-	rule += fmt.Sprintf("%s ", allowProto)
+	rule += fmt.Sprintf("%s dport %d ", allowProto, port)
 
 	if allowIP != "" {
-		rule += fmt.Sprintf("saddr %s ", allowIP)
+		rule += fmt.Sprintf("ip saddr %s ", allowIP)
 	}
 
-	rule += fmt.Sprintf("dport %d accept", port)
+	rule += fmt.Sprintf("accept")
 
 	return rule
 }

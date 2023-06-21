@@ -39,3 +39,13 @@ router:
 
 api:
   abuseIPDBApiKey: "CHANGEME"
+
+compatibility:
+  # Allow masquerading on wireguard interfaces
+  enableWireguardSupport: false
+  wireguardInterfaces:
+    - wg0
+    - wg1
+
+  enableDockerSupport: true
+  dockerIpRange: "172.17.0.1/16"
