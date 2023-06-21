@@ -2,7 +2,7 @@ package render
 
 import (
 	"errors"
-	sysctl "github.com/lorenzosaino/go-sysctl"
+	"github.com/lorenzosaino/go-sysctl"
 	"io/ioutil"
 	"lance-light/core"
 	"lance-light/ip"
@@ -147,7 +147,6 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	// POSTROUTINGチェーン
 	if config.Router.ConfigAsRouter {
-
 		sysctlIpForward, err := sysctl.Get("net.ipv4.ip_forward")
 
 		if err != nil {
