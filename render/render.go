@@ -146,9 +146,16 @@ func GenRulesFromConfig(configFilePath string) []string {
 	if config.Router.ConfigAsRouter {
 		rules = append(rules,
 			MkChainStart("postrouting"),
-			MkBasePostroutingRule(),
+			MkBaseRoutingRule("postrouting"),
 			MkMasquerade(config.Router.PrivateNetworkAddress, config.Router.WANInterface),
 			MkChainEnd())
+	}
+
+	if config.Router.ForceDNS != "" {
+		rules = append(rules,
+			MkChainStart("prerouting"),
+			MkBaseRoutingRule("prerouting"),
+			MkForceDNS(config.Router.ForceDNS, config.Router.LANInterface, "udp"))
 	}
 
 	// テーブル終了

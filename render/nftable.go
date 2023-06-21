@@ -84,19 +84,17 @@ func MkAllowFwd(allowInterface string) string {
 	return fmt.Sprintf("\t\tiifname %s accept", allowInterface)
 }
 
-func MkBasePostroutingRule() string {
-	return "\t\ttype nat hook postrouting priority 100; policy accept;"
+func MkBaseRoutingRule(route string) string {
+	return fmt.Sprintf("\t\ttype nat hook %s priority 100; policy accept;", route)
 }
 
 func MkMasquerade(srcIP string, outInterface string) string {
 	return fmt.Sprintf("\t\tip saddr %s oifname %s masquerade", srcIP, outInterface)
 }
 
-/*
-func MkForceDNS(dnsAddress string) string {
-	//ToDo
+func MkForceDNS(dnsAddress string, lanInterface string, protocol string) string {
+	return fmt.Sprintf("\t\tiifname \"%s\" meta l4proto %s ip saddr != 127.0.0.1 ip daddr != %s udp dport 53 dnat to %s", lanInterface, protocol, dnsAddress, dnsAddress)
 }
-*/
 
 func MkChainStart(name string) string {
 	return "	chain " + name + " {"
