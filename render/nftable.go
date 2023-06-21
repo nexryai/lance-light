@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+func MkFlushRuleset() string {
+	return "flush ruleset"
+}
+
 func MkDefine(name string, obj []string) string {
 	joinedString := strings.Join(obj, ", ")
 

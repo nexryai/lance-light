@@ -51,6 +51,8 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	rules := []string{}
 
+	rules = append(rules, MkFlushRuleset())
+
 	// CloudflareのIPを取得し定義する。
 	if config.Default.EnableIPv6 {
 		rules = append(rules, MkDefine("CLOUDFLARE", getAllCloudflareIPs()))
