@@ -44,7 +44,7 @@ func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid boo
 }
 
 func MkAllowLoopbackInterface() string {
-	return "		iif lo accept"
+	return "\t\tiif lo accept"
 }
 
 func MkAllowPing() string {
@@ -54,7 +54,7 @@ func MkAllowPing() string {
 }
 
 func MkAllowIPv6Ad() string {
-	return "		ip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-router-advert, nd-neighbor-advert } accept"
+	return "\t\tip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-router-advert, nd-neighbor-advert } accept"
 }
 
 func MkDenyIP(denyIp string) string {
@@ -62,7 +62,7 @@ func MkDenyIP(denyIp string) string {
 }
 
 func MkAllowPort(port int, allowIP string, allowInterface string, allowProto string) string {
-	rule := "		"
+	rule := "\t\t"
 
 	if allowInterface != "" {
 		rule += fmt.Sprintf("iifname \"%s\" ", allowInterface)
