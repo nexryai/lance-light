@@ -2,6 +2,7 @@ package render
 
 import (
 	"errors"
+	sysctl "github.com/lorenzosaino/go-sysctl"
 	"io/ioutil"
 	"lance-light/core"
 	"lance-light/ip"
@@ -146,6 +147,15 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	// POSTROUTINGチェーン
 	if config.Router.ConfigAsRouter {
+
+		sysctlIpForward, err := sysctl.Get("net.ipv4.ip_forward")
+
+		if err != nil {
+			core.MsgWarn("Failed to get sysctl value")
+		} else if sysctlIpForward == "0" {
+			core.MsgWarn("net.ipv4.ip_forward is set to 0.")
+		}
+
 		rules = append(rules,
 			MkChainStart("postrouting"),
 			MkBaseRoutingRule("postrouting"),
