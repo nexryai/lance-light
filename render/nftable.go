@@ -23,7 +23,7 @@ func MkBaseRules(allowed bool, direction string) string {
 		policy = "accept"
 	}
 
-	return fmt.Sprintf(`		type filter hook %s priority 0; %s;`, direction, policy)
+	return fmt.Sprintf(`		type filter hook %s priority 0; policy %s;`, direction, policy)
 }
 
 func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid bool) string {
