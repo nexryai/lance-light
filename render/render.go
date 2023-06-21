@@ -52,7 +52,8 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	rules := []string{}
 
-	rules = append(rules, MkFlushRuleset())
+	// Dockerを破壊するのでやめる
+	// rules = append(rules, MkFlushRuleset())
 
 	// CloudflareのIPを取得し定義する。
 	if config.Default.EnableIPv6 {
@@ -62,7 +63,7 @@ func GenRulesFromConfig(configFilePath string) []string {
 	}
 
 	//テーブル作成
-	rules = append(rules, MkTableStart("filter"))
+	rules = append(rules, MkTableStart("lance"))
 
 	// INPUTルール作成
 	rules = append(rules,

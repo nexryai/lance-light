@@ -26,7 +26,7 @@ func main() {
 	core.MsgInfo("LanceLight ver0.01")
 
 	configFilePath := flag.String("f", "/etc/lance.yml", "Path of config.yml")
-	nftableFilePath := flag.String("o", "/etc/nftables.conf", "Path of nftables.conf")
+	nftableFilePath := flag.String("o", "/etc/nftables.lance.conf", "Path of nftables.conf")
 
 	flag.Parse()
 
@@ -34,6 +34,7 @@ func main() {
 
 	if operation == "apply" {
 		writeRulesFromConfig(*configFilePath, *nftableFilePath)
+		// ToDo アンロード(lanceテーブルの削除)とロード処理
 	} else if operation == "export" {
 		exportRulesFromConfig(*configFilePath)
 	}
