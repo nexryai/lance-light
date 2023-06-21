@@ -51,8 +51,12 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	rules := []string{}
 
-	// 定義
-	rules = append(rules, MkDefine("CLOUDFLARE", getAllCloudflareIPs()))
+	// CloudflareのIPを取得し定義する。
+	if config.Default.EnableIPv6 {
+		rules = append(rules, MkDefine("CLOUDFLARE", getAllCloudflareIPs()))
+	} else {
+		rules = append(rules, MkDefine("CLOUDFLARE", getCloudflareIPs(4)))
+	}
 
 	//テーブル作成
 	rules = append(rules, MkTableStart("filter"))
@@ -90,8 +94,10 @@ func GenRulesFromConfig(configFilePath string) []string {
 		core.MsgDebug("Always Deny AbuseIP")
 	}
 
-	// IPv6関係（ToDo: IPv6が無効なら追加しない）
-	rules = append(rules, MkAllowIPv6Ad())
+	// IPv6関係
+	if config.Default.EnableIPv6 {
+		rules = append(rules, MkAllowIPv6Ad())
+	}
 
 	// 許可したポートをallow
 	for _, allowPort := range config.Ports {

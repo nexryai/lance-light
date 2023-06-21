@@ -3,7 +3,7 @@ default:
   allowAllOut: true
   allowAllFwd: false
   allowPing: true
-  enableIPv6: true
+  enableIPv6: false
 
 security:
   alwaysDenyIP: ["1.1.1.1"]
