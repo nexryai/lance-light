@@ -34,7 +34,7 @@ func main() {
 
 	if operation == "apply" {
 		writeRulesFromConfig(*configFilePath, *nftableFilePath)
-		// ToDo アンロード(lanceテーブルの削除)とロード処理
+		core.ExecCommand("nft", []string{"-f", *nftableFilePath})
 	} else if operation == "export" {
 		exportRulesFromConfig(*configFilePath)
 	}
