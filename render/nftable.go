@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-func MkFlushRuleset() string {
-	return "flush ruleset"
+func MkFlushTable(tableName string) string {
+	return fmt.Sprintf("flush table inet %s", tableName)
 }
 
 func MkDefine(name string, obj []string) string {

@@ -32,9 +32,9 @@ ports:
 
 router:
   configAsRouter: true
-  privateNetwork: "192.168.10.0/24"
   wanInterface: "eth0"
-  lanInterface: "eth1"
+  privateNetworks: ["192.168.10.0/24", "192.168.20.0/24"]
+  lanInterfaces: ["eth1", "wg0"]
   forceDNS: "192.168.0.1"
 
 api:

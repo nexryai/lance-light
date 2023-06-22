@@ -38,11 +38,11 @@ type PortConfig struct {
 }
 
 type RouterConfig struct {
-	ConfigAsRouter        bool   `yaml:"configAsRouter"`
-	PrivateNetworkAddress string `yaml:"privateNetwork"`
-	WANInterface          string `yaml:"wanInterface"`
-	LANInterface          string `yaml:"lanInterface"`
-	ForceDNS              string `yaml:"forceDNS"`
+	ConfigAsRouter          bool     `yaml:"configAsRouter"`
+	WANInterface            string   `yaml:"wanInterface"`
+	PrivateNetworkAddresses []string `yaml:"privateNetworks"`
+	LANInterfaces           []string `yaml:"lanInterfaces"`
+	ForceDNS                string   `yaml:"forceDNS"`
 }
 
 func LoadConfig(configFilePath string) Config {

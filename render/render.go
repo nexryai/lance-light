@@ -52,8 +52,7 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 	rules := []string{}
 
-	// Dockerを破壊するのでやめる
-	// rules = append(rules, MkFlushRuleset())
+	rules = append(rules, MkFlushTable("lance"))
 
 	// CloudflareのIPを取得し定義する。
 	if config.Default.EnableIPv6 {
@@ -139,9 +138,11 @@ func GenRulesFromConfig(configFilePath string) []string {
 	rules = append(rules, MkBaseRules(config.Default.AllowAllFwd, "forward"))
 
 	if config.Router.ConfigAsRouter {
-		rules = append(rules,
-			MkBaseInputRules(true, true, false),
-			MkAllowFwd(config.Router.LANInterface))
+		rules = append(rules, MkBaseInputRules(true, true, false))
+
+		for _, lanInterface := range config.Router.LANInterfaces {
+			rules = append(rules, MkAllowFwd(lanInterface))
+		}
 	}
 
 	rules = append(rules, MkChainEnd())
@@ -158,18 +159,26 @@ func GenRulesFromConfig(configFilePath string) []string {
 
 		rules = append(rules,
 			MkChainStart("postrouting"),
-			MkBaseRoutingRule("postrouting"),
-			MkMasquerade(config.Router.PrivateNetworkAddress, config.Router.WANInterface),
-			MkChainEnd())
+			MkBaseRoutingRule("postrouting"))
+
+		for _, privateNetworkAddress := range config.Router.PrivateNetworkAddresses {
+			rules = append(rules, MkMasquerade(privateNetworkAddress, config.Router.WANInterface))
+		}
+
+		rules = append(rules, MkChainEnd())
 	}
 
 	if config.Router.ForceDNS != "" {
 		rules = append(rules,
 			MkChainStart("prerouting"),
-			MkBaseRoutingRule("prerouting"),
-			MkForceDNS(config.Router.ForceDNS, config.Router.LANInterface, "udp"),
-			MkForceDNS(config.Router.ForceDNS, config.Router.LANInterface, "tcp"),
-			MkChainEnd())
+			MkBaseRoutingRule("prerouting"))
+
+		for _, lanInterface := range config.Router.LANInterfaces {
+			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
+			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
+		}
+
+		rules = append(rules, MkChainEnd())
 	}
 
 	// テーブル終了
