@@ -23,7 +23,7 @@ func exportRulesFromConfig(configFilePath string) bool {
 }
 
 func main() {
-	core.MsgInfo("LanceLight ver0.01")
+	core.MsgInfo("LanceLight ver0.20")
 
 	configFilePath := flag.String("f", "/etc/lance.yml", "Path of config.yml")
 	nftableFilePath := flag.String("o", "/etc/nftables.lance.conf", "Path of nftables.conf")
