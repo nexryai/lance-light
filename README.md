@@ -27,7 +27,7 @@ wget https://raw.githubusercontent.com/nexryai/lance-light/main/install.sh
 sudo bash install.sh
 
 # ルールを編集
-sudo nan o/etc/lance.yml
+sudo nano /etc/lance.yml
 
 # 適用
 sudo llfctl enable
