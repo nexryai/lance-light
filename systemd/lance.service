@@ -5,7 +5,7 @@ Before=network-pre.target
 
 [Service]
 Type=oneshot
-ProtectSystem=full
+ProtectSystem=true
 ProtectHome=true
 ExecStart=/usr/bin/llfctl enable
 ExecReload=/usr/bin/llfctl apply
