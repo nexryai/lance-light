@@ -9,3 +9,5 @@ mv llfctl /usr/bin/
 
 curl https://raw.githubusercontent.com/nexryai/lance-light/main/systemd/lance.service > /etc/systemd/system/lance.service
 curl https://raw.githubusercontent.com/nexryai/lance-light/main/config.default.yml > /etc/lance.yml
+
+systemctl daemon-reload
