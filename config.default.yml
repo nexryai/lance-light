@@ -1,0 +1,16 @@
+default:
+  allowAllIn: false
+  allowAllOut: true
+  allowAllFwd: false
+  allowPing: true
+  enableIPv6: true
+
+ports:
+#  - port: 80
+#    allowIP: "cloudflare"
+
+#  - port: 443
+#    allowIP: "cloudflare"
+
+  - port: 22
+    proto: "tcp"
