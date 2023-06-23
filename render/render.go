@@ -64,6 +64,10 @@ func GenRulesFromConfig(configFilePath string) []string {
 	//テーブル作成
 	rules = append(rules, MkTableStart("lance"))
 
+	if config.Default.AllowAllIn {
+		core.MsgWarn("Input is allowed by default. This is an VERY UNSAFE setting. You MUST not use this setting unless you know what you are doing.")
+	}
+
 	// INPUTルール作成
 	rules = append(rules,
 		MkChainStart("input"),
