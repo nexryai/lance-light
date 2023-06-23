@@ -9,7 +9,7 @@ mv llfctl /usr/bin/
 
 curl https://raw.githubusercontent.com/nexryai/lance-light/main/systemd/lance.service > /etc/systemd/system/lance.service
 
-if [ -f /etc/lance.yml ]; then
+if [ ! -f /etc/lance.yml ]; then
   curl https://raw.githubusercontent.com/nexryai/lance-light/main/config.default.yml > /etc/lance.yml
 fi
 
