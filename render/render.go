@@ -168,7 +168,7 @@ func GenRulesFromConfig(configFilePath string) []string {
 		rules = append(rules, MkChainEnd())
 	}
 
-	if config.Router.ForceDNS != "" {
+	if config.Router.ConfigAsRouter && config.Router.ForceDNS != "" {
 		rules = append(rules,
 			MkChainStart("prerouting"),
 			MkBaseRoutingRule("prerouting"))

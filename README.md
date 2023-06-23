@@ -20,15 +20,11 @@ Cloudflareからのアクセスのみを許可したり、特定のインター�
 
 
 ### 使い方
-
-#### とりあえず試す（ルールを出力するだけで書き込まない）
-`go run main.go -f "config.yml" export`
-
-#### ファイルに書き込む
-`go run main.go -f "config.yml" -o "/etc/nftables.conf" apply`
+`/etc/lance.yml`に適当な設定を書き込み、`go run main.go apply`を実行すれば適用されます。永続化するためにはこれを起動時に実行する必要があります。  
+インストールスクリプトを将来的に提供予定です。
 
 
 ### 既知の問題
 
 #### Dockerと競合する
-Dockerは勝手にiptable(nftable)のルールを書き換えるのでlanceによって生成された設定ファイルと競合します。すべてのコンテナにホストネットワークモードを使用することで回避できます。
+`allowAllFwd`をtrueにすれば回避できます。
