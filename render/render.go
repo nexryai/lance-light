@@ -47,12 +47,14 @@ func getAllCloudflareIPs() []string {
 	return cfAllIpList
 }
 
-func GenRulesFromConfig(configFilePath string) []string {
+func GenRulesFromConfig(configFilePath string, addFlushRule bool) []string {
 	config := core.LoadConfig(configFilePath)
 
 	rules := []string{}
 
-	rules = append(rules, MkFlushTable("lance"))
+	if addFlushRule {
+		rules = append(rules, MkFlushTable("lance"))
+	}
 
 	// CloudflareのIPを取得し定義する。
 	if config.Default.EnableIPv6 {
@@ -65,7 +67,7 @@ func GenRulesFromConfig(configFilePath string) []string {
 	rules = append(rules, MkTableStart("lance"))
 
 	if config.Default.AllowAllIn {
-		core.MsgWarn("Input is allowed by default. This is an VERY UNSAFE setting. You MUST not use this setting unless you know what you are doing.")
+		core.MsgWarn("Input is allowed by default. This is a VERY UNSAFE setting. You MUST not use this setting unless you know what you are doing.")
 	}
 
 	// INPUTルール作成

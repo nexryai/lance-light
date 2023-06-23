@@ -1,0 +1,16 @@
+[Unit]
+Description=LanceLight firewall
+Wants=network-pre.target
+Before=network-pre.target
+
+[Service]
+Type=oneshot
+ProtectSystem=full
+ProtectHome=true
+ExecStart=/usr/bin/llfctl enable
+ExecReload=/usr/bin/llfctl apply
+ExecStop=/usr/bin/llfctl disable
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
