@@ -20,6 +20,8 @@ Cloudflareからのアクセスのみを許可したり、特定のインター�
 
 
 ### 使い方
+注意: 使う前に既存なファイアウォールを無効化してください
+
 ```
 wget https://raw.githubusercontent.com/nexryai/lance-light/main/install.sh
 sudo bash install.sh
