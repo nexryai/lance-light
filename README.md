@@ -20,8 +20,19 @@ Cloudflareからのアクセスのみを許可したり、特定のインター�
 
 
 ### 使い方
-`/etc/lance.yml`に適当な設定を書き込み、`go run main.go apply`を実行すれば適用されます。永続化するためにはこれを起動時に実行する必要があります。  
-インストールスクリプトを将来的に提供予定です。
+```
+wget https://raw.githubusercontent.com/nexryai/lance-light/main/install.sh
+sudo bash install.sh
+
+# ルールを編集
+sudo nan o/etc/lance.yml
+
+# 適用
+sudo llfctl enable
+
+# 起動時に適用されるようにする
+sudo systemctl enable lance
+```
 
 
 ### 既知の問題
