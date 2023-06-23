@@ -8,6 +8,9 @@ rm LanceLight-linux-amd64.zip
 mv llfctl /usr/bin/
 
 curl https://raw.githubusercontent.com/nexryai/lance-light/main/systemd/lance.service > /etc/systemd/system/lance.service
-curl https://raw.githubusercontent.com/nexryai/lance-light/main/config.default.yml > /etc/lance.yml
+
+if [ -f /etc/lance.yml ]; then
+  curl https://raw.githubusercontent.com/nexryai/lance-light/main/config.default.yml > /etc/lance.yml
+fi
 
 systemctl daemon-reload
