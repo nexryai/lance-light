@@ -5,15 +5,19 @@ import (
 	"os"
 )
 
-var reset  = "\033[0m"
-var red    = "\033[31m"
-var green  = "\033[32m"
+var reset = "\033[0m"
+var red = "\033[31m"
+var green = "\033[32m"
 var yellow = "\033[33m"
-var gray   = "\033[37m"
+var gray = "\033[37m"
 
+// 現状だとデバッグモードはロギングにのみ影響するので公開していないが将来的にIsDebugModeになる可能性もある？
+func isDebugMode() bool {
+	return os.Getenv("LANCE_DEBUG_MODE") == "true"
+}
 
 func MsgInfo(text string) {
-	fmt.Println(green + "INFO: " + reset + text)
+	fmt.Println(green + "✔ INFO: " + reset + text)
 }
 
 func MsgErr(text string) {
@@ -25,7 +29,9 @@ func MsgWarn(text string) {
 }
 
 func MsgDebug(text string) {
-	fmt.Println(gray + "DEBUG: " + text + reset)
+	if isDebugMode() {
+		fmt.Println(gray + "DEBUG: " + text + reset)
+	}
 }
 
 func MsgDetail(text string) {
