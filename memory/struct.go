@@ -1,7 +1,6 @@
 package memory
 
 type NftablesRecord struct {
-	ID        int
 	EventUUID string
 	SrcIP     string
 	Nic       string

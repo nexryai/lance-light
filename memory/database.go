@@ -6,12 +6,12 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"lance-light/core"
-	"log"
 )
 
 const (
 	dbPath = "./memory.db"
 
+	// ToDo なんかもっといい感じに書き直す（そもそもここでconstする必要性ない？）
 	nftablesLogsTable = `CREATE TABLE IF NOT EXISTS nftablesLogs (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		uuid TEXT,
@@ -58,21 +58,23 @@ func GetNftablesLogRecord(column string, value string) []NftablesRecord {
 	core.ExitOnError(err, "Failed to open database!")
 	defer db.Close()
 
+	// クエリの作成
 	query := fmt.Sprintf(`
-		SELECT id, uuid, src, nic, dst, dpt, mac, proto, timestamp
+		SELECT uuid, src, nic, dst, dpt, mac, proto, timestamp
 		FROM nftablesLogs
 		WHERE %s = "%s"
 	`, column, value)
 
+	// クエリ実行
 	rows, err := db.Query(query)
 	core.ExitOnError(err, "Failed to load database!")
 	defer rows.Close()
 
+	// マッピングする
 	var records []NftablesRecord
 	for rows.Next() {
 		var record NftablesRecord
 		err := rows.Scan(
-			&record.ID,
 			&record.EventUUID,
 			&record.SrcIP,
 			&record.Nic,
@@ -86,6 +88,5 @@ func GetNftablesLogRecord(column string, value string) []NftablesRecord {
 		records = append(records, record)
 	}
 
-	log.Println("取得したレコード数:", len(records))
 	return records
 }
