@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"lance-light/core"
+	"lance-light/memory"
 	"lance-light/render"
 	"os"
 )
@@ -21,6 +22,20 @@ func exportRulesFromConfig(configFilePath string) bool {
 		fmt.Println(item)
 	}
 	return true
+}
+
+func recordLogsToDatabase() {
+	memory.InitDatabase()
+
+	// ToDo: 本来はダミーデータではなくsystemdからカーネルのログを持ってきてパースして記録する
+	memory.CreateNftablesLogRecord("127.0.0.1", "eth0", "192.168.0.1", "22", "DUMMY_MAC", "tcp", 1687586049549151)
+
+	// For debug
+	records := memory.GetNftablesLogRecord("src", "127.0.0.1")
+
+	if len(records) != 0 {
+		core.MsgDebug(records[0].EventUUID)
+	}
 }
 
 func showHelp() {
@@ -79,6 +94,9 @@ func main() {
 		core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
 		core.MsgInfo("LanceLight firewall is disabled.")
 
+	} else if operation == "record" {
+		// ジャーナルログからデータベースにログをレコードする
+		recordLogsToDatabase()
 	} else if operation == "" {
 		//コマンド説明
 		showHelp()
