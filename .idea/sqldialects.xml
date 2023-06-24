@@ -3,5 +3,6 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/memory/database.go" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/memory/init.go" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/memory/registry.go" dialect="GenericSQL" />
   </component>
 </project>

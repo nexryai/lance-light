@@ -32,8 +32,7 @@ func InitDatabase() {
 
 			registryTable = `
 				CREATE TABLE IF NOT EXISTS registry (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				key TEXT,
+				key TEXT PRIMARY KEY,
 				value TEXT
 			);`
 		)
