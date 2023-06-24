@@ -1,7 +1,7 @@
 ## LanceLight Firewall
 
 ### これは何
-nftableのラッパーとして機能する、軽量でシンプルかつセキュアでエッセンシャルなファイアウォール。  
+nftablesのラッパーとして機能する、軽量でシンプルかつセキュアでエッセンシャルなファイアウォール。  
 開発中です。
 
 
@@ -35,7 +35,14 @@ sudo llfctl enable
 # 起動時に適用されるようにする
 sudo systemctl enable lance
 ```
+#### ソースからビルド
+```
+# ビルド
+make
 
+# インストール
+sudo make install
+```
 
 ### 既知の問題
 
