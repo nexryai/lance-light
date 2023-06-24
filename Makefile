@@ -1,4 +1,4 @@
-all: llfctl
+all: clean llfctl
 
 llfctl:
 	go build -o llfctl main.go
