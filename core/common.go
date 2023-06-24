@@ -30,7 +30,7 @@ func MsgWarn(text string) {
 
 func MsgDebug(text string) {
 	if isDebugMode() {
-		fmt.Println(gray + "DEBUG: " + text + reset)
+		fmt.Println(gray + "⚙ DEBUG: " + text + reset)
 	}
 }
 

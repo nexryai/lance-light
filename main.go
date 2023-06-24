@@ -70,6 +70,7 @@ func main() {
 	} else if operation == "export" {
 
 		// エクスポート
+		core.MsgDebug(fmt.Sprintf("configFilePath: %s", *configFilePath))
 		exportRulesFromConfig(*configFilePath)
 
 	} else if operation == "disable" {
