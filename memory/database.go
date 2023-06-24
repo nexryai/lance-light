@@ -10,27 +10,26 @@ import (
 
 const (
 	dbPath = "./memory.db"
-
-	// ToDo なんかもっといい感じに書き直す（そもそもここでconstする必要性ない？）
-	nftablesLogsTable = `CREATE TABLE IF NOT EXISTS nftablesLogs (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		uuid TEXT,
-		src TEXT,
-		nic TEXT,
-		dst TEXT,
-		dpt TEXT,
-		mac TEXT,
-		proto TEXT,
-		timestamp INTEGER
-	);`
-
-	insertNftablesLog = `
-		INSERT INTO nftablesLogs (uuid, src, nic, dst, dpt, mac, proto, timestamp)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`
 )
 
 func InitDatabase() {
+	// 各種定義
+	const (
+		// ToDo なんかもっといい感じに書き直す（そもそもconstする必要性ない？）
+		nftablesLogsTable = `
+			CREATE TABLE IF NOT EXISTS nftablesLogs (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			uuid TEXT,
+			src TEXT,
+			nic TEXT,
+			dst TEXT,
+			dpt TEXT,
+			mac TEXT,
+			proto TEXT,
+			timestamp INTEGER
+		);`
+	)
+
 	// データベースのオープン
 	db, err := sql.Open("sqlite3", dbPath)
 	core.ExitOnError(err, "Failed to open database!")
@@ -44,6 +43,14 @@ func InitDatabase() {
 }
 
 func CreateNftablesLogRecord(src string, nic string, dst string, dpt string, mac string, proto string, timestamp int) {
+	//定義
+	const (
+		insertNftablesLog = `
+			INSERT INTO nftablesLogs (uuid, src, nic, dst, dpt, mac, proto, timestamp)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		`
+	)
+
 	db, err := sql.Open("sqlite3", dbPath)
 	core.ExitOnError(err, "Failed to open database!")
 	defer db.Close()
