@@ -13,7 +13,7 @@ import (
 )
 
 /*
-nftableルールをレンダリングする。基本的に1行の内容を1つづつ配列に格納して返す
+nftablesルールをレンダリングする。基本的に1行の内容を1つづつ配列に格納して返す
 */
 
 func getCloudflareIPs(version int) []string {
@@ -32,8 +32,8 @@ func getCloudflareIPs(version int) []string {
 
 	// レスポンスボディを文字列に変換し、改行文字で分割してリストに代入
 	cfIpList := strings.Split(string(body), "\n")
-	//CfIpList=[]string{"192.168.0.1", "10.0.0.1", "256.0.0.1", "172.16.0.1"}
 
+	// 取得したIPが正しいか念の為確認する
 	if !ip.CheckIPAddresses(cfIpList) {
 		core.ExitOnError(errors.New("invalid IP from API"), "An error occurred while retrieving the IP list from Cloudflare. The request was successful, but an invalid IP address was detected.")
 	}
@@ -174,6 +174,7 @@ func GenRulesFromConfig(configFilePath string, addFlushRule bool) []string {
 		rules = append(rules, MkChainEnd())
 	}
 
+	// ToDo: configAsRouterじゃなくてもforceDNSできるようにする
 	if config.Router.ConfigAsRouter && config.Router.ForceDNS != "" {
 		rules = append(rules,
 			MkChainStart("prerouting"),

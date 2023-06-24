@@ -18,6 +18,7 @@ type PrefixData struct {
 	} `json:"prefixes"`
 }
 
+// ASNからIPのCIDRのリストに変換する
 func GetIpRangeFromASN(asn string) []string {
 	url := "https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS" + asn
 	ipCidr := []string{}

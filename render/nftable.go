@@ -26,6 +26,7 @@ func MkBaseRules(allowed bool, direction string) string {
 	return fmt.Sprintf(`		type filter hook %s priority 0; policy %s;`, direction, policy)
 }
 
+// FixMe: 関数名おかしい気がする？
 func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid bool) string {
 
 	establishedRule := "drop"
@@ -58,6 +59,7 @@ func MkAllowPing() string {
 }
 
 func MkAllowIPv6Ad() string {
+	// これしないとIPv6関係の接続が壊れる
 	return "\t\tip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-router-advert, nd-neighbor-advert } accept"
 }
 
