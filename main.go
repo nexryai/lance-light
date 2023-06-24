@@ -36,7 +36,7 @@ func recordLogsToDatabase() {
 	if len(records) != 0 {
 		core.MsgDebug(records[0].EventUUID)
 	}
-	
+
 	//memory.SetRegistryValue("lance.developer", "nexryai")
 	//core.MsgDebug(memory.GetRegistryValue("lance.developer"))
 }
