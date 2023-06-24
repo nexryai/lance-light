@@ -4,6 +4,7 @@ default:
   allowAllFwd: false
   allowPing: true
   enableIPv6: false
+  enableLogging: true
 
 security:
   alwaysDenyIP: ["1.1.1.1"]

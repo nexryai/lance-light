@@ -126,6 +126,11 @@ func GenRulesFromConfig(configFilePath string, addFlushRule bool) []string {
 		}
 	}
 
+	// ログが有効ならログする
+	if config.Default.EnableLogging {
+		rules = append(rules, MkLoggingRules("drop"))
+	}
+
 	// INPUTチェーン終了
 	rules = append(rules, MkChainEnd())
 

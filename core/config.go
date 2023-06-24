@@ -13,11 +13,12 @@ type Config struct {
 }
 
 type DefaultConfig struct {
-	AllowAllIn  bool `yaml:"allowAllIn"`
-	AllowAllOut bool `yaml:"allowAllOut"`
-	AllowAllFwd bool `yaml:"allowAllFwd"`
-	AllowPing   bool `yaml:"allowPing"`
-	EnableIPv6  bool `yaml:"enableIPv6"`
+	AllowAllIn    bool `yaml:"allowAllIn"`
+	AllowAllOut   bool `yaml:"allowAllOut"`
+	AllowAllFwd   bool `yaml:"allowAllFwd"`
+	AllowPing     bool `yaml:"allowPing"`
+	EnableIPv6    bool `yaml:"enableIPv6"`
+	EnableLogging bool `yaml:"enableLogging"`
 }
 
 type SecurityConfig struct {

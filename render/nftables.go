@@ -102,6 +102,11 @@ func MkForceDNS(dnsAddress string, lanInterface string, protocol string) string 
 	return fmt.Sprintf("\t\tiifname \"%s\" meta l4proto %s ip saddr != 127.0.0.1 ip daddr != %s %s dport 53 dnat to %s", lanInterface, protocol, dnsAddress, protocol, dnsAddress)
 }
 
+// ログ関係
+func MkLoggingRules(policy string) string {
+	return fmt.Sprintf("\t\tlog prefix \"[LanceLight] Access Denied: \" counter %s", policy)
+}
+
 // チェーンとテーブル関係
 func MkChainStart(name string) string {
 	return "\tchain " + name + " {"
