@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lance-light/core"
 	"lance-light/render"
+	"os"
 )
 
 // 成功したらTrue、そうでなければFalseを返す
@@ -20,6 +21,18 @@ func exportRulesFromConfig(configFilePath string) bool {
 		fmt.Println(item)
 	}
 	return true
+}
+
+func showHelp() {
+	fmt.Println("LanceLight firewall - Yet another human-friendly firewall \n\n",
+		"(c)2023 nexryai\nThis program is licensed under the Mozilla Public License Version 2.0, and anyone can audit and contribute to it.\n\n\n",
+		"[usage]\n",
+		"Enable firewall:\n  ▶ llfctl enable\n\n",
+		"Apply rules when configuration is updated:\n  ▶ llfctl apply\n\n",
+		"Disable firewall:\n  ▶ llfctl disable\n\n",
+		"[options]\n",
+		"-f [PATH]: Specify the path to the configuration file (Default: /etc/lance.yml)\n",
+		"-o [PATH]: Where to write nftables rules. Need not to use except for debugging. (Default: /etc/nftables.lance.conf)\n\n")
 }
 
 func main() {
@@ -55,6 +68,13 @@ func main() {
 		core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
 		core.MsgInfo("LanceLight firewall is disabled.")
 
+	} else if operation == "" {
+		//コマンド説明
+		showHelp()
+	} else {
+		core.MsgErr("Invalid args!\n")
+		showHelp()
+		os.Exit(1)
 	}
 
 }
