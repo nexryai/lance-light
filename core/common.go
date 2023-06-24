@@ -21,7 +21,7 @@ func MsgInfo(text string) {
 }
 
 func MsgErr(text string) {
-	fmt.Println(red + "✘ ERROR: " + text + reset)
+	fmt.Fprintln(os.Stderr, red+"✘ ERROR: "+text+reset)
 }
 
 func MsgWarn(text string) {
