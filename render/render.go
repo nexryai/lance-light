@@ -34,7 +34,7 @@ func getCloudflareIPs(version int) []string {
 	cfIpList := strings.Split(string(body), "\n")
 
 	// 取得したIPが正しいか念の為確認する
-	if ip.CheckIPAddresses(cfIpList) {
+	if !ip.CheckIPAddresses(cfIpList) {
 		core.ExitOnError(errors.New("invalid IP from API"), core.GenBugCodeMessage("8a04693b-9a36-422b-81b6-2270ad8e357b"))
 	}
 
