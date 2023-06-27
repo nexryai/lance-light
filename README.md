@@ -48,3 +48,6 @@ sudo make install
 
 #### Dockerと競合する
 `allowAllFwd`をtrueにすれば回避できます。
+
+### Special Thanks
+ - ChatGPT

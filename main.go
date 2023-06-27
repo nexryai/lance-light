@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"lance-light/analyzer"
 	"lance-light/core"
 	"lance-light/memory"
 	"lance-light/render"
@@ -37,8 +38,9 @@ func recordLogsToDatabase() {
 		core.MsgDebug(records[0].EventUUID)
 	}
 
+	analyzer.GetJournaldLog()
 	//memory.SetRegistryValue("lance.developer", "nexryai")
-	//core.MsgDebug(memory.GetRegistryValue("lance.developer"))
+	core.MsgDebug(memory.GetRegistryValue("analyzer.journald.lastRecordTimestamp"))
 }
 
 func showHelp() {

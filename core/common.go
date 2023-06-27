@@ -3,6 +3,8 @@ package core
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 )
 
 var reset = "\033[0m"
@@ -47,4 +49,14 @@ func ExitOnError(err error, message string) {
 	}
 
 	return
+}
+
+func GetUnixTimestampString() string {
+	now := time.Now()
+	unix := now.Unix()
+	return strconv.FormatInt(unix, 10)
+}
+
+func GenBugCodeMessage(code string) string {
+	return fmt.Sprintf("Fatal internal error (bug code: \"%s\"). See the bug code table in the documentation.", code)
 }

@@ -43,7 +43,15 @@ func GetRegistryValue(key string) string {
 	row := db.QueryRow(selectRegistryValue, key)
 	var value string
 	err = row.Scan(&value)
-	core.ExitOnError(err, "Failed to load a record to database!")
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// レコードが存在しない場合は空のstringを返す
+			return ""
+		} else {
+			core.ExitOnError(err, "Failed to load a record from database!")
+		}
+	}
 
 	return value
 }
