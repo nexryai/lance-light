@@ -95,7 +95,9 @@ func GenRulesFromConfig(config *core.Config, addFlushRule bool) []string {
 		rules = append(rules, MkFlushTable("lance"))
 	}
 
-	rules = append(rules, MkInclude("./debug.define.conf"))
+	// IpDefineFilePathをincludeする
+	// IpDefineFilePathにはCloudflareのIPやAubseIPがキャッシュされている
+	rules = append(rules, MkInclude(config.Nftables.IpDefineFilePath))
 
 	//テーブル作成
 	rules = append(rules, MkTableStart("lance"))

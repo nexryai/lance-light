@@ -1,3 +1,7 @@
+nftables:
+  configFilePath: "./nftables.lance.conf"
+  ipDefineFilePath: "./nftables.ipdefine.conf"
+
 default:
   allowAllIn: false
   allowAllOut: true

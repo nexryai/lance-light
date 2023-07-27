@@ -6,10 +6,17 @@ import (
 )
 
 type Config struct {
-	Default  DefaultConfig  `yaml:"default"`
-	Security SecurityConfig `yaml:"security"`
-	Ports    []PortConfig   `yaml:"ports"`
-	Router   RouterConfig   `yaml:"router"`
+	Nftables  NftablesConfig `yaml:"nftables"`
+	Default   DefaultConfig  `yaml:"default"`
+	Security  SecurityConfig `yaml:"security"`
+	Ports     []PortConfig   `yaml:"ports"`
+	Router    RouterConfig   `yaml:"router"`
+	DebugMode bool           `yaml:"debugMode"`
+}
+
+type NftablesConfig struct {
+	NftablesFilePath string `yaml:"configFilePath"`
+	IpDefineFilePath string `yaml:"ipDefineFilePath"`
 }
 
 type DefaultConfig struct {
