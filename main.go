@@ -12,23 +12,27 @@ func applyNftablesRules(configFilePath string) {
 	core.ExecCommand("nft", []string{"-f", configFilePath})
 }
 
-func writeRulesFromConfig(config *core.Config, addFlushRule bool) bool {
+func flushNftablesRules() {
+	core.ExecCommand("nft", []string{"flush", "ruleset"})
+}
+
+func writeRulesFromConfig(config *core.Config) bool {
 
 	ipDefineRules, err := render.GenIpDefineRules("cloudflare", config)
 	if err != nil {
-		//ToDo: ipDefineFilePathが存在しなければ失敗扱い
+		core.ExitOnError(err, "Network Error. Please use offline mode!")
 	} else {
 		core.WriteToFile(ipDefineRules, config.Nftables.IpDefineFilePath)
 	}
 
-	rules := render.GenRulesFromConfig(config, addFlushRule)
+	rules := render.GenRulesFromConfig(config)
 	core.WriteToFile(rules, config.Nftables.NftablesFilePath)
 	return true
 }
 
 func exportRulesFromConfig(config *core.Config) bool {
 
-	rules := render.GenRulesFromConfig(config, false)
+	rules := render.GenRulesFromConfig(config)
 	for _, item := range rules {
 		fmt.Println(item)
 	}
@@ -77,23 +81,31 @@ func main() {
 
 	if operation == "apply" {
 
-		// 設定をリセットして再設定する
-		writeRulesFromConfig(&config, true)
+		writeRulesFromConfig(&config)
 
 		// nftコマンドを実行して適用
+		flushNftablesRules()
 		applyNftablesRules(config.Nftables.NftablesFilePath)
 
 		core.MsgInfo("Firewall settings have been applied successfully.")
 
 	} else if operation == "enable" {
 
-		// 設定を適用する
-		writeRulesFromConfig(&config, false)
+		writeRulesFromConfig(&config)
 
 		// nftコマンドを実行して適用
 		applyNftablesRules(config.Nftables.NftablesFilePath)
 
 		core.MsgInfo("LanceLight firewall is enabled.")
+
+	} else if operation == "offline" {
+		// Q.これは何
+		// A.オフライン環境だとレンダリングできない（CloudflareのIPなどが取得できない）。起動直後などのオフラインな環境でも最低限の保護を有効にするため、一旦lance.ymlの変更を反映せずとりあえず古いルールをロードだけする。
+
+		// nftコマンドを実行して適用
+		applyNftablesRules(config.Nftables.NftablesFilePath)
+
+		core.MsgInfo("LanceLight firewall is enabled. (Offline mode!)")
 
 	} else if operation == "export" {
 

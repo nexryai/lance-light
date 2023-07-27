@@ -87,13 +87,9 @@ func GenIpDefineRules(rule string, config *core.Config) ([]string, error) {
 	return rules, nil
 }
 
-func GenRulesFromConfig(config *core.Config, addFlushRule bool) []string {
+func GenRulesFromConfig(config *core.Config) []string {
 
 	rules := []string{}
-
-	if addFlushRule {
-		rules = append(rules, MkFlushTable("lance"))
-	}
 
 	// IpDefineFilePathをincludeする
 	// IpDefineFilePathにはCloudflareのIPやAubseIPがキャッシュされている
