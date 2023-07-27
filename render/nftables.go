@@ -9,10 +9,14 @@ func MkFlushTable(tableName string) string {
 	return fmt.Sprintf("flush table inet %s", tableName)
 }
 
+func MkInclude(filePath string) string {
+	return fmt.Sprintf("include \"%s\"", filePath)
+}
+
 func MkDefine(name string, obj []string) string {
 	joinedString := strings.Join(obj, ", ")
 
-	rule := fmt.Sprintf("define %s = { %s }", name, joinedString)
+	rule := fmt.Sprintf("define %s = { %s };", name, joinedString)
 	return rule
 }
 

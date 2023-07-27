@@ -16,7 +16,7 @@ import (
 nftablesルールをレンダリングする。基本的に1行の内容を1つづつ配列に格納して返す
 */
 
-func getCloudflareIPs(version int) []string {
+func getCloudflareIPs(version int) ([]string, error) {
 
 	if version != 4 && version != 6 {
 		core.MsgErr("Internal error. EUID:26987ba0-2355-418b-9bc8-c0d76189cd16 \nPlease contact the developer.")
@@ -24,8 +24,13 @@ func getCloudflareIPs(version int) []string {
 	}
 
 	resp, err := http.Get("https://www.cloudflare.com/ips-v" + strconv.Itoa(version))
-	core.ExitOnError(err, "Failed to fetch Cloudflare's list of IP addresses. If checking your network connection does not resolve the issue, please contact the developer.")
 	defer resp.Body.Close()
+
+	// ネットワークエラーならExitOnErrorしない
+	if err != nil {
+		core.MsgErr("Failed to fetch Cloudflare's list of IP addresses. If checking your network connection does not resolve the issue, please contact the developer.")
+		return []string{}, err
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	core.ExitOnError(err, "An unexpected error occurred while retrieving Cloudflare's IP address. The request was successful, but an error occurred while reading the response body.")
@@ -38,17 +43,51 @@ func getCloudflareIPs(version int) []string {
 		core.ExitOnError(errors.New("invalid IP from API"), core.GenBugCodeMessage("8a04693b-9a36-422b-81b6-2270ad8e357b"))
 	}
 
-	return cfIpList
+	return cfIpList, nil
 }
 
-func getAllCloudflareIPs() []string {
-	cfAllIpList := getCloudflareIPs(4)
-	cfAllIpList = append(cfAllIpList, getCloudflareIPs(6)...)
-	return cfAllIpList
+func getAllCloudflareIPs() ([]string, error) {
+	cfIPv4List, errv4 := getCloudflareIPs(4)
+	if errv4 != nil {
+		return []string{}, errv4
+	}
+
+	cfIPv6List, errv6 := getCloudflareIPs(6)
+	if errv6 != nil {
+		return []string{}, errv6
+	}
+
+	return append(cfIPv4List, cfIPv6List...), nil
 }
 
-func GenRulesFromConfig(configFilePath string, addFlushRule bool) []string {
-	config := core.LoadConfig(configFilePath)
+func GenIpDefineRules(rule string, config *core.Config) ([]string, error) {
+	rules := []string{}
+
+	if rule == "cloudflare" {
+		// CloudflareのIPを取得し定義する。
+		var clouflareIPs []string
+		var errOnGetCloudflareIPs error
+
+		if config.Default.EnableIPv6 {
+			clouflareIPs, errOnGetCloudflareIPs = getAllCloudflareIPs()
+		} else {
+			clouflareIPs, errOnGetCloudflareIPs = getCloudflareIPs(4)
+		}
+
+		if errOnGetCloudflareIPs != nil {
+			core.MsgInfo("No Internet Connection. Use cache!")
+			return rules, errOnGetCloudflareIPs
+		}
+
+		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPs))
+	} else {
+		core.ExitOnError(errors.New("unexpected argument"), core.GenBugCodeMessage("16ee8518-2ad6-4946-8d10-fbc77a1da586"))
+	}
+
+	return rules, nil
+}
+
+func GenRulesFromConfig(config *core.Config, addFlushRule bool) []string {
 
 	rules := []string{}
 
@@ -56,12 +95,7 @@ func GenRulesFromConfig(configFilePath string, addFlushRule bool) []string {
 		rules = append(rules, MkFlushTable("lance"))
 	}
 
-	// CloudflareのIPを取得し定義する。
-	if config.Default.EnableIPv6 {
-		rules = append(rules, MkDefine("CLOUDFLARE", getAllCloudflareIPs()))
-	} else {
-		rules = append(rules, MkDefine("CLOUDFLARE", getCloudflareIPs(4)))
-	}
+	rules = append(rules, MkInclude("./debug.define.conf"))
 
 	//テーブル作成
 	rules = append(rules, MkTableStart("lance"))

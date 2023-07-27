@@ -3,44 +3,38 @@ package main
 import (
 	"flag"
 	"fmt"
-	"lance-light/analyzer"
 	"lance-light/core"
-	"lance-light/memory"
 	"lance-light/render"
 	"os"
 )
 
-// 成功したらTrue、そうでなければFalseを返す
-func writeRulesFromConfig(configFilePath string, nftablesFilePath string, addFlushRule bool) bool {
-	rules := render.GenRulesFromConfig(configFilePath, addFlushRule)
+func applyNftablesRules(configFilePath string) {
+	core.ExecCommand("nft", []string{"-f", configFilePath})
+}
+
+func writeRulesFromConfig(configFilePath string, nftablesFilePath string, ipDefineFilePath string, addFlushRule bool) bool {
+	config := core.LoadConfig(configFilePath)
+
+	ipDefineRules, err := render.GenIpDefineRules("cloudflare", &config)
+	if err != nil {
+		//ToDo: ipDefineFilePathが存在しなければ失敗扱い
+	} else {
+		core.WriteToFile(ipDefineRules, ipDefineFilePath)
+	}
+
+	rules := render.GenRulesFromConfig(&config, addFlushRule)
 	core.WriteToFile(rules, nftablesFilePath)
 	return true
 }
 
 func exportRulesFromConfig(configFilePath string) bool {
-	rules := render.GenRulesFromConfig(configFilePath, false)
+	config := core.LoadConfig(configFilePath)
+
+	rules := render.GenRulesFromConfig(&config, false)
 	for _, item := range rules {
 		fmt.Println(item)
 	}
 	return true
-}
-
-func recordLogsToDatabase() {
-	memory.InitDatabase()
-
-	// ToDo: 本来はダミーデータではなくsystemdからカーネルのログを持ってきてパースして記録する
-	memory.CreateNftablesLogRecord("127.0.0.1", "eth0", "192.168.0.1", "22", "DUMMY_MAC", "tcp", 1687586049549151)
-
-	// For debug
-	records := memory.GetNftablesLogRecord("src", "127.0.0.1")
-
-	if len(records) != 0 {
-		core.MsgDebug(records[0].EventUUID)
-	}
-
-	analyzer.GetJournaldLog()
-	//memory.SetRegistryValue("lance.developer", "nexryai")
-	core.MsgDebug(memory.GetRegistryValue("analyzer.journald.lastRecordTimestamp"))
 }
 
 func showHelp() {
@@ -58,6 +52,7 @@ func showHelp() {
 func main() {
 	configFilePath := flag.String("f", "/etc/lance.yml", "Path of config.yml")
 	nftablesFilePath := flag.String("o", "/etc/nftables.lance.conf", "Path of nftables.conf")
+	ipDefineFilePath := flag.String("d", "/etc/nftables.ipdefine.conf", "Path of ipdefine.conf")
 	debugMode := flag.Bool("debug", false, "Enable debug mode")
 
 	flag.Parse()
@@ -76,15 +71,21 @@ func main() {
 	if operation == "apply" {
 
 		// 設定をリセットして再設定する
-		writeRulesFromConfig(*configFilePath, *nftablesFilePath, true)
-		core.ExecCommand("nft", []string{"-f", *nftablesFilePath})
+		writeRulesFromConfig(*configFilePath, *nftablesFilePath, *ipDefineFilePath, true)
+
+		// nftコマンドを実行して適用
+		applyNftablesRules(*nftablesFilePath)
+
 		core.MsgInfo("Firewall settings have been applied successfully.")
 
 	} else if operation == "enable" {
 
 		// 設定を適用する
-		writeRulesFromConfig(*configFilePath, *nftablesFilePath, false)
-		core.ExecCommand("nft", []string{"-f", *nftablesFilePath})
+		writeRulesFromConfig(*configFilePath, *nftablesFilePath, *ipDefineFilePath, false)
+
+		// nftコマンドを実行して適用
+		applyNftablesRules(*nftablesFilePath)
+
 		core.MsgInfo("LanceLight firewall is enabled.")
 
 	} else if operation == "export" {
@@ -99,9 +100,6 @@ func main() {
 		core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
 		core.MsgInfo("LanceLight firewall is disabled.")
 
-	} else if operation == "record" {
-		// ジャーナルログからデータベースにログをレコードする
-		recordLogsToDatabase()
 	} else if operation == "" {
 		//コマンド説明
 		showHelp()
