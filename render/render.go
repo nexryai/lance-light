@@ -46,40 +46,29 @@ func getCloudflareIPs(version int) ([]string, error) {
 	return cfIpList, nil
 }
 
-func getAllCloudflareIPs() ([]string, error) {
-	cfIPv4List, errv4 := getCloudflareIPs(4)
-	if errv4 != nil {
-		return []string{}, errv4
-	}
-
-	cfIPv6List, errv6 := getCloudflareIPs(6)
-	if errv6 != nil {
-		return []string{}, errv6
-	}
-
-	return append(cfIPv4List, cfIPv6List...), nil
-}
-
 func GenIpDefineRules(rule string, config *core.Config) ([]string, error) {
 	rules := []string{}
 
 	if rule == "cloudflare" {
 		// CloudflareのIPを取得し定義する。
-		var clouflareIPs []string
-		var errOnGetCloudflareIPs error
+		var clouflareIPsV4 []string
+		var clouflareIPsV6 []string
+		var e error
+
+		clouflareIPsV4, e = getCloudflareIPs(4)
+		if e != nil {
+			return rules, e
+		}
 
 		if config.Default.EnableIPv6 {
-			clouflareIPs, errOnGetCloudflareIPs = getAllCloudflareIPs()
-		} else {
-			clouflareIPs, errOnGetCloudflareIPs = getCloudflareIPs(4)
+			clouflareIPsV6, e = getCloudflareIPs(6)
+			if e != nil {
+				return rules, e
+			}
 		}
 
-		if errOnGetCloudflareIPs != nil {
-			core.MsgInfo("No Internet Connection. Use cache!")
-			return rules, errOnGetCloudflareIPs
-		}
+		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
 
-		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPs))
 	} else {
 		core.ExitOnError(errors.New("unexpected argument"), core.GenBugCodeMessage("16ee8518-2ad6-4946-8d10-fbc77a1da586"))
 	}
@@ -146,6 +135,8 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 		if allowPort.AllowIP == "cloudflare" {
 			allowIP = "$CLOUDFLARE"
+		} else if allowPort.AllowIP == "cloudflare_v6" {
+			allowIP = "$CLOUDFLARE_V6"
 		} else {
 			allowIP = allowPort.AllowIP
 		}

@@ -2,12 +2,10 @@ package render
 
 import (
 	"fmt"
+	"lance-light/core"
+	"lance-light/ip"
 	"strings"
 )
-
-func MkFlushTable(tableName string) string {
-	return fmt.Sprintf("flush table inet %s", tableName)
-}
 
 func MkInclude(filePath string) string {
 	return fmt.Sprintf("include \"%s\"", filePath)
@@ -68,11 +66,22 @@ func MkAllowIPv6Ad() string {
 }
 
 func MkDenyIP(denyIp string) string {
-	return fmt.Sprintf(`		ip saddr %s drop`, denyIp)
+	if ip.IsIPv6(denyIp) {
+		return fmt.Sprintf(`		ip6 saddr %s drop`, denyIp)
+	} else {
+		return fmt.Sprintf(`		ip saddr %s drop`, denyIp)
+	}
 }
 
 func MkAllowPort(port int, allowIP string, allowInterface string, allowProto string) string {
 	rule := "\t\t"
+	var ipVersion int8
+
+	if allowIP == "$CLOUDFLARE_V6" || ip.IsIPv6(allowIP) {
+		ipVersion = 6
+	} else {
+		ipVersion = 4
+	}
 
 	if allowInterface != "" {
 		rule += fmt.Sprintf("iifname \"%s\" ", allowInterface)
@@ -81,7 +90,13 @@ func MkAllowPort(port int, allowIP string, allowInterface string, allowProto str
 	rule += fmt.Sprintf("%s dport %d ", allowProto, port)
 
 	if allowIP != "" {
-		rule += fmt.Sprintf("ip saddr %s ", allowIP)
+		if ipVersion == 4 {
+			rule += fmt.Sprintf("ip saddr %s ", allowIP)
+		} else if ipVersion == 6 {
+			rule += fmt.Sprintf("ip6 saddr %s ", allowIP)
+		} else {
+			core.GenBugCodeMessage("fea1507a-6eb7-40d4-a499-1f70ac6fd580")
+		}
 	}
 
 	rule += fmt.Sprintf("accept")

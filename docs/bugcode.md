@@ -14,3 +14,6 @@ The request was successful, but an invalid IP address was detected.
 
  - It is possible that there is a problem with Cloudflare's system, but since the request itself was successful, this is highly unlikely.
  - This is probably caused by a bug in LanceLight; please open an issue and contact the developer.
+
+#### `fea1507a-6eb7-40d4-a499-1f70ac6fd580`
+MkAllowPort()関数内にバグがあります。このバグコードはユーザー側のミスでは発生しないはずです。開発者に連絡してください。

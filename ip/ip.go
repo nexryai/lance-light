@@ -3,6 +3,7 @@ package ip
 import (
 	"lance-light/core"
 	"net"
+	"strings"
 )
 
 func isValidIP(ip string) bool {
@@ -21,4 +22,8 @@ func CheckIPAddresses(ipAddresses []string) bool {
 		}
 	}
 	return true
+}
+
+func IsIPv6(input string) bool {
+	return strings.Contains(input, ":")
 }
