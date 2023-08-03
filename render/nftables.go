@@ -73,8 +73,18 @@ func MkDenyIP(denyIp string) string {
 	}
 }
 
-func MkAllowPort(port int, allowIP string, allowInterface string, allowProto string) string {
+func MkAllowPort(c *core.PortConfig) string {
 	rule := "\t\t"
+	var allowIP string
+
+	if c.AllowIP == "cloudflare" {
+		allowIP = "$CLOUDFLARE"
+	} else if c.AllowIP == "cloudflare_v6" {
+		allowIP = "$CLOUDFLARE_V6"
+	} else {
+		allowIP = c.AllowIP
+	}
+
 	var ipVersion int8
 
 	if allowIP == "$CLOUDFLARE_V6" || ip.IsIPv6(allowIP) {
@@ -83,11 +93,11 @@ func MkAllowPort(port int, allowIP string, allowInterface string, allowProto str
 		ipVersion = 4
 	}
 
-	if allowInterface != "" {
-		rule += fmt.Sprintf("iifname \"%s\" ", allowInterface)
+	if c.AllowInterface != "" {
+		rule += fmt.Sprintf("iifname \"%s\" ", c.AllowInterface)
 	}
 
-	rule += fmt.Sprintf("%s dport %d ", allowProto, port)
+	rule += fmt.Sprintf("%s dport %d ", c.Proto, c.Port)
 
 	if allowIP != "" {
 		if ipVersion == 4 {
@@ -119,6 +129,21 @@ func MkMasquerade(srcIP string, outInterface string) string {
 
 func MkForceDNS(dnsAddress string, lanInterface string, protocol string) string {
 	return fmt.Sprintf("\t\tiifname \"%s\" meta l4proto %s ip saddr != 127.0.0.1 ip daddr != %s %s dport 53 dnat to %s", lanInterface, protocol, dnsAddress, protocol, dnsAddress)
+}
+
+func MkBaseNatRule() string {
+	return "\t\ttype nat hook prerouting priority dstnat;"
+}
+
+func MkNat(c *core.NatConfig) string {
+	rule := fmt.Sprintf("\t\tiifname \"%s\" ", c.Interface)
+
+	if c.AllowIP != "" {
+		rule += fmt.Sprintf("ip saddr %s ", c.AllowIP)
+	}
+
+	rule += fmt.Sprintf("ip daddr { %s } %s dport %s dnat %s", c.DstIP, c.Proto, c.DstPort, c.NatTo)
+	return rule
 }
 
 // ログ関係

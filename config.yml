@@ -42,5 +42,13 @@ router:
   lanInterfaces: ["eth1", "wg0"]
   forceDNS: "192.168.0.1"
 
+nat:
+  - interface: "wg0"
+    allowIP: "10.0.0.0/24"
+    dstIP: "10.0.0.1"
+    dstPort: "53"
+    proto: "udp"
+    natTo: "192.168.1.100:53"
+
 api:
   abuseIPDBApiKey: "CHANGEME"

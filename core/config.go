@@ -11,6 +11,7 @@ type Config struct {
 	Security  SecurityConfig `yaml:"security"`
 	Ports     []PortConfig   `yaml:"ports"`
 	Router    RouterConfig   `yaml:"router"`
+	Nat       []NatConfig    `yaml:"nat"`
 	DebugMode bool           `yaml:"debugMode"`
 }
 
@@ -51,6 +52,15 @@ type RouterConfig struct {
 	PrivateNetworkAddresses []string `yaml:"privateNetworks"`
 	LANInterfaces           []string `yaml:"lanInterfaces"`
 	ForceDNS                string   `yaml:"forceDNS"`
+}
+
+type NatConfig struct {
+	Interface string `yaml:"interface"`
+	AllowIP   string `yaml:"allowIP"`
+	DstIP     string `yaml:"dstIP"`
+	DstPort   string `yaml:"dstPort"`
+	Proto     string `yaml:"proto"`
+	NatTo     string `yaml:"natTo"`
 }
 
 func LoadConfig(configFilePath string) Config {

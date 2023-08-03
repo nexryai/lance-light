@@ -16,6 +16,18 @@ import (
 nftablesルールをレンダリングする。基本的に1行の内容を1つづつ配列に格納して返す
 */
 
+func shouldGenPreroutingRules(config *core.Config) bool {
+	if config.Router.ConfigAsRouter && config.Router.ForceDNS != "" {
+		// ForceDNSが設定されているならtrue
+		return true
+	} else if len(config.Nat) != 0 {
+		// Nat設定があるならtrue
+		return true
+	} else {
+		return false
+	}
+}
+
 func getCloudflareIPs(version int) ([]string, error) {
 
 	if version != 4 && version != 6 {
@@ -130,22 +142,15 @@ func GenRulesFromConfig(config *core.Config) []string {
 	}
 
 	// 許可したポートをallow
-	for _, allowPort := range config.Ports {
-		var allowIP string
-
-		if allowPort.AllowIP == "cloudflare" {
-			allowIP = "$CLOUDFLARE"
-		} else if allowPort.AllowIP == "cloudflare_v6" {
-			allowIP = "$CLOUDFLARE_V6"
+	for _, r := range config.Ports {
+		if r.Proto == "" {
+			// 本当はprotoを必須にしたいけど互換性維持のため
+			r.Proto = "tcp"
+			rules = append(rules, MkAllowPort(&r))
+			r.Proto = "udp"
+			rules = append(rules, MkAllowPort(&r))
 		} else {
-			allowIP = allowPort.AllowIP
-		}
-
-		if allowPort.Proto == "" {
-			rules = append(rules, MkAllowPort(allowPort.Port, allowIP, allowPort.AllowInterface, "tcp"))
-			rules = append(rules, MkAllowPort(allowPort.Port, allowIP, allowPort.AllowInterface, "udp"))
-		} else {
-			rules = append(rules, MkAllowPort(allowPort.Port, allowIP, allowPort.AllowInterface, allowPort.Proto))
+			rules = append(rules, MkAllowPort(&r))
 		}
 	}
 
@@ -203,15 +208,25 @@ func GenRulesFromConfig(config *core.Config) []string {
 		rules = append(rules, MkChainEnd())
 	}
 
-	// ToDo: configAsRouterじゃなくてもforceDNSできるようにする
-	if config.Router.ConfigAsRouter && config.Router.ForceDNS != "" {
-		rules = append(rules,
-			MkChainStart("prerouting"),
-			MkBaseRoutingRule("prerouting"))
+	// PREROUTINGチェーン
+	if shouldGenPreroutingRules(config) {
+		rules = append(rules, MkChainStart("prerouting"))
 
-		for _, lanInterface := range config.Router.LANInterfaces {
-			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
-			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
+		if config.Router.ConfigAsRouter {
+			rules = append(rules, MkBaseRoutingRule("prerouting"))
+		} else if len(config.Nat) != 0 {
+			rules = append(rules, MkBaseNatRule())
+		}
+
+		if config.Router.ConfigAsRouter {
+			for _, lanInterface := range config.Router.LANInterfaces {
+				rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
+				rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
+			}
+		}
+
+		for _, r := range config.Nat {
+			rules = append(rules, MkNat(&r))
 		}
 
 		rules = append(rules, MkChainEnd())
