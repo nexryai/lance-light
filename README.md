@@ -45,6 +45,9 @@ sudo make install
 ```
 
 ### 既知の問題
+#### RHEL系に入れたらsystemd経由で扱おうとするとPermissionで文句言われる
+SELinuxのせいです。  
+`sudo restorecon -R /usr/local/llfctl`で解決します。
 
 #### Dockerと競合する
 `allowAllFwd`をtrueにすれば回避できます。
