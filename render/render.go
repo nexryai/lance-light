@@ -176,6 +176,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 	rules = append(rules, MkBaseRules(config.Default.AllowAllFwd, "forward"))
 
+	// ルーターとして構成するならLAN→WANへのマスカレードを許可する
 	if config.Router.ConfigAsRouter {
 		rules = append(rules, MkBaseInputRules(true, true, false))
 
@@ -184,11 +185,17 @@ func GenRulesFromConfig(config *core.Config) []string {
 		}
 	}
 
+	// ポート転送構成時にForwardを許可する
+	if len(config.Nat) != 0 {
+		for _, r := range config.Nat {
+			rules = append(rules, MkAllowForwardForNat(&r))
+		}
+	}
+
 	rules = append(rules, MkChainEnd())
 
 	// POSTROUTINGチェーン
-	if config.Router.ConfigAsRouter {
-		core.MsgDebug("Enabled: config.Router.ConfigAsRouter")
+	if config.Router.ConfigAsRouter || len(config.Nat) != 0 {
 		sysctlIpForward, err := sysctl.Get("net.ipv4.ip_forward")
 
 		if err != nil {
@@ -201,8 +208,18 @@ func GenRulesFromConfig(config *core.Config) []string {
 			MkChainStart("postrouting"),
 			MkBaseRoutingRule("postrouting"))
 
-		for _, privateNetworkAddress := range config.Router.PrivateNetworkAddresses {
-			rules = append(rules, MkMasquerade(privateNetworkAddress, config.Router.WANInterface))
+		// ルーターとして構成するときのLAN→WANのマスカレード
+		if config.Router.ConfigAsRouter {
+			for _, privateNetworkAddress := range config.Router.PrivateNetworkAddresses {
+				rules = append(rules, MkMasquerade(privateNetworkAddress, config.Router.WANInterface))
+			}
+		}
+
+		// ポート転送有効時のマスカレード
+		if len(config.Nat) != 0 {
+			for _, r := range config.Nat {
+				rules = append(rules, MkMasqueradeForNat(&r))
+			}
 		}
 
 		rules = append(rules, MkChainEnd())
@@ -218,15 +235,18 @@ func GenRulesFromConfig(config *core.Config) []string {
 			rules = append(rules, MkBaseNatRule())
 		}
 
-		if config.Router.ConfigAsRouter {
+		if config.Router.ForceDNS != "" {
 			for _, lanInterface := range config.Router.LANInterfaces {
 				rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
 				rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
 			}
 		}
 
-		for _, r := range config.Nat {
-			rules = append(rules, MkNat(&r))
+		// ポート転送有効時のNAT構成
+		if len(config.Nat) != 0 {
+			for _, r := range config.Nat {
+				rules = append(rules, MkNat(&r))
+			}
 		}
 
 		rules = append(rules, MkChainEnd())

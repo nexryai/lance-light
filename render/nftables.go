@@ -119,12 +119,20 @@ func MkAllowFwd(allowInterface string) string {
 	return fmt.Sprintf("\t\tiifname %s accept", allowInterface)
 }
 
+func MkAllowForwardForNat(c *core.NatConfig) string {
+	return fmt.Sprintf("\t\tiifname %s ip saddr %s accept", c.Interface, c.AllowIP)
+}
+
 func MkBaseRoutingRule(route string) string {
 	return fmt.Sprintf("\t\ttype nat hook %s priority 100; policy accept;", route)
 }
 
 func MkMasquerade(srcIP string, outInterface string) string {
 	return fmt.Sprintf("\t\tip saddr %s oifname %s masquerade", srcIP, outInterface)
+}
+
+func MkMasqueradeForNat(c *core.NatConfig) string {
+	return fmt.Sprintf("\t\tiifname %s ip saddr %s masquerade", c.Interface, c.AllowIP)
 }
 
 func MkForceDNS(dnsAddress string, lanInterface string, protocol string) string {
