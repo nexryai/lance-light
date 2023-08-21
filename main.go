@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lance-light/core"
 	"lance-light/render"
+	"lance-light/report"
 	"os"
 )
 
@@ -118,6 +119,10 @@ func main() {
 		// 設定をアンロードする
 		core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
 		core.MsgInfo("LanceLight firewall is disabled.")
+
+	} else if operation == "report" {
+
+		report.ReportAbuseIPs(&config, true)
 
 	} else if operation == "" {
 		//コマンド説明

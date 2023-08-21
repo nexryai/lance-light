@@ -12,6 +12,7 @@ type Config struct {
 	Ports     []PortConfig   `yaml:"ports"`
 	Router    RouterConfig   `yaml:"router"`
 	Nat       []NatConfig    `yaml:"nat"`
+	Report    ReportConfig   `yaml:"report"`
 	DebugMode bool           `yaml:"debugMode"`
 }
 
@@ -61,6 +62,12 @@ type NatConfig struct {
 	DstPort   string `yaml:"dstPort"`
 	Proto     string `yaml:"proto"`
 	NatTo     string `yaml:"natTo"`
+}
+
+type ReportConfig struct {
+	AbuseIpDbAPIKey string   `yaml:"abuseIpDbAPIKey"`
+	TrustedIPs      []string `yaml:"trustedIPs"`
+	ReportInterval  int      `yaml:"reportIntervalMinutes"`
 }
 
 func LoadConfig(configFilePath string) Config {
