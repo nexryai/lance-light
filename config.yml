@@ -27,8 +27,6 @@ ports:
     proto: "tcp"
     allowIP: "0.0.0.0"
     allowCountry: "JP"
-    denyFromAbuseIPs: true
-    denyFromTorIPs: true
   
   - port: 3000
     allowIP: "local"

@@ -14,11 +14,13 @@ func applyNftablesRules(configFilePath string) {
 }
 
 func flushNftablesRules() {
+	// FIXME: これやると何故かsshに繋がらなくなることがあるっぽい
 	core.ExecCommand("nft", []string{"flush", "ruleset"})
 }
 
 func writeRulesFromConfig(config *core.Config) bool {
 
+	// ipdefine.conf (IPのリストを定義するやつ)を生成
 	ipDefineRules, err := render.GenIpDefineRules("cloudflare", config)
 	if err != nil {
 		core.ExitOnError(err, "Network Error. Please use offline mode!")
@@ -26,6 +28,7 @@ func writeRulesFromConfig(config *core.Config) bool {
 		core.WriteToFile(ipDefineRules, config.Nftables.IpDefineFilePath)
 	}
 
+	// nftablesルールを生成
 	rules := render.GenRulesFromConfig(config)
 	core.WriteToFile(rules, config.Nftables.NftablesFilePath)
 	return true
