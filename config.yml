@@ -10,6 +10,16 @@ default:
   enableIPv6: false
   enableLogging: true
 
+ipset:
+  - name: "TRUSTED"
+    ip: ["0.0.0.0", "127.0.0.1"]
+
+  - name: "DISLIKE"
+    ip:
+      - 192.168.1.100
+      - 10.0.0.3
+
+
 security:
   alwaysDenyIP: ["1.1.1.1"]
   alwaysDenyASN: ["53667", "397702"]
@@ -25,11 +35,10 @@ ports:
 
   - port: 22
     proto: "tcp"
-    allowIP: "0.0.0.0"
-    allowCountry: "JP"
-  
+    allowCountry: "jp"
+
   - port: 3000
-    allowIP: "local"
+    allowIP: "192.168.1.0/24"
     allowInterface: "eth1"
 
 

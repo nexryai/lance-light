@@ -1,9 +1,11 @@
 package render
 
 import (
+	"fmt"
 	"github.com/lorenzosaino/go-sysctl"
 	"lance-light/core"
 	"lance-light/ip"
+	"strings"
 )
 
 /*
@@ -22,20 +24,56 @@ func shouldGenPreroutingRules(config *core.Config) bool {
 	}
 }
 
+func shouldDefineCloudflareIPs(config *core.Config) bool {
+	for _, p := range config.Ports {
+		if p.AllowIP == "cloudflare" || p.AllowIP == "cloudflare_v6" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func GenIpDefineRules(config *core.Config) ([]string, error) {
 	rules := []string{}
 
 	// CloudflareのIPを取得し定義する
-	var clouflareIPsV4 []string
-	var clouflareIPsV6 []string
+	if shouldDefineCloudflareIPs(config) {
+		var clouflareIPsV4 []string
+		var clouflareIPsV6 []string
 
-	clouflareIPsV4 = ip.FetchIpSet("https://www.cloudflare.com/ips-v4")
+		clouflareIPsV4 = ip.FetchIpSet("https://www.cloudflare.com/ips-v4")
 
-	if config.Default.EnableIPv6 {
-		clouflareIPsV6 = ip.FetchIpSet("https://www.cloudflare.com/ips-v6")
+		if config.Default.EnableIPv6 {
+			clouflareIPsV6 = ip.FetchIpSet("https://www.cloudflare.com/ips-v6")
+		}
+
+		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
 	}
 
-	rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
+	// AllowCountryに存在する国コードのIPを取得し定義する
+	var countries []string
+	seen := make(map[string]bool)
+
+	for _, p := range config.Ports {
+		c := p.AllowCountry
+		if !seen[c] && c != "" {
+			countries = append(countries, c)
+			seen[c] = true
+		}
+	}
+
+	for _, c := range countries {
+		url := fmt.Sprintf("https://www.ipdeny.com/ipblocks/data/countries/%s.zone", c)
+		r := MkDefine(strings.ToUpper(c), ip.FetchIpSet(url))
+		rules = append(rules, r)
+	}
+
+	// ユーザー定義のipsetをロードする
+	for _, s := range config.IpSet {
+		r := MkDefine(strings.ToUpper(s.Name), s.Ip)
+		rules = append(rules, r)
+	}
 
 	return rules, nil
 }
