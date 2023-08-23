@@ -3,13 +3,8 @@ package render
 import (
 	"errors"
 	"github.com/lorenzosaino/go-sysctl"
-	"io/ioutil"
 	"lance-light/core"
 	"lance-light/ip"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
 )
 
 /*
@@ -28,36 +23,6 @@ func shouldGenPreroutingRules(config *core.Config) bool {
 	}
 }
 
-func getCloudflareIPs(version int) ([]string, error) {
-
-	if version != 4 && version != 6 {
-		core.MsgErr("Internal error. EUID:26987ba0-2355-418b-9bc8-c0d76189cd16 \nPlease contact the developer.")
-		os.Exit(2)
-	}
-
-	resp, err := http.Get("https://www.cloudflare.com/ips-v" + strconv.Itoa(version))
-	defer resp.Body.Close()
-
-	// ネットワークエラーならExitOnErrorしない
-	if err != nil {
-		core.MsgErr("Failed to fetch Cloudflare's list of IP addresses. If checking your network connection does not resolve the issue, please contact the developer.")
-		return []string{}, err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	core.ExitOnError(err, "An unexpected error occurred while retrieving Cloudflare's IP address. The request was successful, but an error occurred while reading the response body.")
-
-	// レスポンスボディを文字列に変換し、改行文字で分割してリストに代入
-	cfIpList := strings.Split(string(body), "\n")
-
-	// 取得したIPが正しいか念の為確認する
-	if !ip.CheckIPAddresses(cfIpList) {
-		core.ExitOnError(errors.New("invalid IP from API"), core.GenBugCodeMessage("8a04693b-9a36-422b-81b6-2270ad8e357b"))
-	}
-
-	return cfIpList, nil
-}
-
 func GenIpDefineRules(rule string, config *core.Config) ([]string, error) {
 	rules := []string{}
 
@@ -67,13 +32,13 @@ func GenIpDefineRules(rule string, config *core.Config) ([]string, error) {
 		var clouflareIPsV6 []string
 		var e error
 
-		clouflareIPsV4, e = getCloudflareIPs(4)
+		clouflareIPsV4, e = ip.GetCloudflareIPs(4)
 		if e != nil {
 			return rules, e
 		}
 
 		if config.Default.EnableIPv6 {
-			clouflareIPsV6, e = getCloudflareIPs(6)
+			clouflareIPsV6, e = ip.GetCloudflareIPs(6)
 			if e != nil {
 				return rules, e
 			}
