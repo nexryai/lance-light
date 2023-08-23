@@ -1,7 +1,6 @@
 package render
 
 import (
-	"errors"
 	"github.com/lorenzosaino/go-sysctl"
 	"lance-light/core"
 	"lance-light/ip"
@@ -23,32 +22,20 @@ func shouldGenPreroutingRules(config *core.Config) bool {
 	}
 }
 
-func GenIpDefineRules(rule string, config *core.Config) ([]string, error) {
+func GenIpDefineRules(config *core.Config) ([]string, error) {
 	rules := []string{}
 
-	if rule == "cloudflare" {
-		// CloudflareのIPを取得し定義する。
-		var clouflareIPsV4 []string
-		var clouflareIPsV6 []string
-		var e error
+	// CloudflareのIPを取得し定義する
+	var clouflareIPsV4 []string
+	var clouflareIPsV6 []string
 
-		clouflareIPsV4, e = ip.GetCloudflareIPs(4)
-		if e != nil {
-			return rules, e
-		}
+	clouflareIPsV4 = ip.FetchIpSet("https://www.cloudflare.com/ips-v4")
 
-		if config.Default.EnableIPv6 {
-			clouflareIPsV6, e = ip.GetCloudflareIPs(6)
-			if e != nil {
-				return rules, e
-			}
-		}
-
-		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
-
-	} else {
-		core.ExitOnError(errors.New("unexpected argument"), core.GenBugCodeMessage("16ee8518-2ad6-4946-8d10-fbc77a1da586"))
+	if config.Default.EnableIPv6 {
+		clouflareIPsV6 = ip.FetchIpSet("https://www.cloudflare.com/ips-v6")
 	}
+
+	rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
 
 	return rules, nil
 }

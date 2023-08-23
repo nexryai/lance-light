@@ -21,7 +21,7 @@ func flushNftablesRules() {
 func writeRulesFromConfig(config *core.Config) bool {
 
 	// ipdefine.conf (IPのリストを定義するやつ)を生成
-	ipDefineRules, err := render.GenIpDefineRules("cloudflare", config)
+	ipDefineRules, err := render.GenIpDefineRules(config)
 	if err != nil {
 		core.ExitOnError(err, "Network Error. Please use offline mode!")
 	} else {
@@ -35,6 +35,10 @@ func writeRulesFromConfig(config *core.Config) bool {
 }
 
 func exportRulesFromConfig(config *core.Config) bool {
+	ipDefineRules, _ := render.GenIpDefineRules(config)
+	for _, item := range ipDefineRules {
+		fmt.Println(item)
+	}
 
 	rules := render.GenRulesFromConfig(config)
 	for _, item := range rules {
