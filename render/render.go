@@ -5,7 +5,6 @@ import (
 	"github.com/lorenzosaino/go-sysctl"
 	"lance-light/core"
 	"lance-light/ip"
-	"strings"
 )
 
 /*
@@ -65,13 +64,13 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 
 	for _, c := range countries {
 		url := fmt.Sprintf("https://www.ipdeny.com/ipblocks/data/countries/%s.zone", c)
-		r := MkDefine(strings.ToUpper(c), ip.FetchIpSet(url))
+		r := MkDefine(c, ip.FetchIpSet(url))
 		rules = append(rules, r)
 	}
 
 	// ユーザー定義のipsetをロードする
 	for _, s := range config.IpSet {
-		r := MkDefine(strings.ToUpper(s.Name), s.Ip)
+		r := MkDefine(s.Name, s.Ip)
 		rules = append(rules, r)
 	}
 
@@ -133,8 +132,13 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 	// 許可したポートをallow
 	for _, r := range config.Ports {
+		if r.AllowIP != "" && r.AllowCountry != "" {
+			// AllowCountryが設定されているとAllowIPが上書きされてしまうので対策
+			r.AllowIP = fmt.Sprintf("{ $%s, %s }", r.AllowCountry, r.AllowIP)
+			r.AllowCountry = ""
+		}
+
 		if r.Proto == "" {
-			// 本当はprotoを必須にしたいけど互換性維持のため
 			r.Proto = "tcp"
 			rules = append(rules, MkAllowPort(&r))
 			r.Proto = "udp"

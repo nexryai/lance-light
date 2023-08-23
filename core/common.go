@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"os"
 	"strconv"
 	"time"
@@ -59,4 +60,9 @@ func GetUnixTimestampString() string {
 
 func GenBugCodeMessage(code string) string {
 	return fmt.Sprintf("Fatal internal error (bug code: \"%s\"). See the bug code table in the documentation.", code)
+}
+
+func GenUUID() string {
+	id := uuid.New()
+	return id.String()
 }
