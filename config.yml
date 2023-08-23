@@ -1,3 +1,4 @@
+# これを通常触る必要はないかも
 nftables:
   configFilePath: "./nftables.lance.conf"
   ipDefineFilePath: "./nftables.ipdefine.conf"
@@ -35,7 +36,7 @@ ports:
 
   - port: 22
     proto: "tcp"
-    allowIP: "192.168.1.0/24"
+    allowIP: "$TRUSTED"
     allowCountry: "jp"
 
   - port: 3000
@@ -43,20 +44,40 @@ ports:
     allowInterface: "eth1"
 
 
+# ルーター設定
 router:
+  # ルーター機能を設定するかどうか
   configAsRouter: true
+
+  # WAN側のインターフェイス
   wanInterface: "eth0"
+
+  # プライベートネットワークのCIDRとインターフェイス
   privateNetworks: ["192.168.10.0/24", "192.168.20.0/24"]
   lanInterfaces: ["eth1", "wg0"]
+
+  # LAN内のデバイスに特定のDNSを強制する（AdGuard Home使用時などに有効）
   forceDNS: "192.168.0.1"
 
+  # カスタムルート設定
+  # LAN→WAN以外も許可したいとき（例えばVPNからLANへのアクセスを許可したい場合）などに使う
+  customRoutes:
+    - allowIP: "10.0.10.0/24"
+      allowInterface: "wg1"
+      allowDST: "192.168.10.0/24"
+
+# NAT設定
 nat:
   - interface: "wg0"
+    # 許可するIP（必須: どこでもいいときは0.0.0.0/0）
     allowIP: "10.0.0.0/24"
+
+    # 宛先IPがどこに向いている場合にNATするかを定義する（通常はこのデバイスのローカルIP、VPS環境などの場合はグローバルIP）
     dstIP: "10.0.0.1"
+
+    # どのポートにどのプロトコルで来たらNATするかを定義する
     dstPort: "53"
     proto: "udp"
-    natTo: "192.168.1.100:53"
 
-api:
-  abuseIPDBApiKey: "CHANGEME"
+    # どこにNATするかを設定
+    natTo: "192.168.1.100:53"

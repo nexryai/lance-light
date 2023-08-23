@@ -54,11 +54,18 @@ type PortConfig struct {
 }
 
 type RouterConfig struct {
-	ConfigAsRouter          bool     `yaml:"configAsRouter"`
-	WANInterface            string   `yaml:"wanInterface"`
-	PrivateNetworkAddresses []string `yaml:"privateNetworks"`
-	LANInterfaces           []string `yaml:"lanInterfaces"`
-	ForceDNS                string   `yaml:"forceDNS"`
+	ConfigAsRouter          bool                 `yaml:"configAsRouter"`
+	WANInterface            string               `yaml:"wanInterface"`
+	PrivateNetworkAddresses []string             `yaml:"privateNetworks"`
+	LANInterfaces           []string             `yaml:"lanInterfaces"`
+	ForceDNS                string               `yaml:"forceDNS"`
+	CustomRoutes            []CustomRoutesConfig `yaml:"customRoutes"`
+}
+
+type CustomRoutesConfig struct {
+	AllowIP        string `yaml:"allowIP"`
+	AllowInterface string `yaml:"allowInterface"`
+	AllowDST       string `yaml:"allowDST"`
 }
 
 type NatConfig struct {

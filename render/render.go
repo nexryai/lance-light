@@ -177,6 +177,12 @@ func GenRulesFromConfig(config *core.Config) []string {
 		for _, lanInterface := range config.Router.LANInterfaces {
 			rules = append(rules, MkAllowFwd(lanInterface))
 		}
+
+		// カスタムルート設定時にForward許可する
+		for _, r := range config.Router.CustomRoutes {
+			rules = append(rules, MkAllowForwardForCustomRoutes(&r))
+		}
+
 	}
 
 	// ポート転送構成時にForwardを許可する
@@ -202,10 +208,15 @@ func GenRulesFromConfig(config *core.Config) []string {
 			MkChainStart("postrouting"),
 			MkBaseRoutingRule("postrouting"))
 
-		// ルーターとして構成するときのLAN→WANのマスカレード
 		if config.Router.ConfigAsRouter {
+			// ルーターとして構成するときのLAN→WANのマスカレード
 			for _, privateNetworkAddress := range config.Router.PrivateNetworkAddresses {
 				rules = append(rules, MkMasquerade(privateNetworkAddress, config.Router.WANInterface))
+			}
+
+			// カスタムルート設定時のマスカレード設定
+			for _, r := range config.Router.CustomRoutes {
+				rules = append(rules, MkMasqueradeForCustomRoutes(&r))
 			}
 		}
 
