@@ -37,10 +37,18 @@ type DefaultConfig struct {
 }
 
 type SecurityConfig struct {
-	AlwaysDenyIP      []string `yaml:"alwaysDenyIP"`
-	AlwaysDenyASN     []string `yaml:"alwaysDenyASN"`
-	AlwaysDenyAbuseIP bool     `yaml:"alwaysDenyAbuseIP"`
-	AlwaysDenyTor     bool     `yaml:"alwaysDenyTor"`
+	AlwaysDenyIP      []string              `yaml:"alwaysDenyIP"`
+	AlwaysDenyASN     []string              `yaml:"alwaysDenyASN"`
+	AlwaysDenyAbuseIP bool                  `yaml:"alwaysDenyAbuseIP"`
+	AlwaysDenyTor     bool                  `yaml:"alwaysDenyTor"`
+	CloudProtection   CloudProtectionConfig `yaml:"cloudProtection"`
+}
+
+type CloudProtectionConfig struct {
+	EnableCloudProtection bool `yaml:"enableCloudProtection"`
+	BlockPublicProxy      bool `yaml:"blockPublicProxy"`
+	BlockAbuseIP          bool `yaml:"blockAbuseIP"`
+	BlockBulletproofIP    bool `yaml:"blockBulletproofIP"`
 }
 
 type PortConfig struct {

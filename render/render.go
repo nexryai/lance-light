@@ -68,6 +68,18 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 		rules = append(rules, r)
 	}
 
+	// クラウドプロテクション
+	if config.Security.CloudProtection.EnableCloudProtection {
+		r := MkDefine("PUBLIC_PROXY", ip.FetchIpSet("https://guard.sda1.net/data/ipset/public-proxy.ipset"))
+		rules = append(rules, r)
+
+		r = MkDefine("ABUSE_IP", ip.FetchIpSet("https://guard.sda1.net/data/ipset/abuse.ipset"))
+		rules = append(rules, r)
+
+		r = MkDefine("BULLETPROOF", ip.FetchIpSet("https://guard.sda1.net/data/ipset/bulletproof.ipset"))
+		rules = append(rules, r)
+	}
+
 	// ユーザー定義のipsetをロードする
 	for _, s := range config.IpSet {
 		r := MkDefine(s.Name, s.Ip)
@@ -122,6 +134,21 @@ func GenRulesFromConfig(config *core.Config) []string {
 	// alwaysDenyIPを拒否
 	for _, denyIP := range alwaysDenyIP {
 		rules = append(rules, MkDenyIP(denyIP))
+	}
+
+	// クラウド保護
+	if config.Security.CloudProtection.EnableCloudProtection {
+		if config.Security.CloudProtection.BlockPublicProxy {
+			rules = append(rules, MkDenyIP("$PUBLIC_PROXY"))
+		}
+
+		if config.Security.CloudProtection.BlockAbuseIP {
+			rules = append(rules, MkDenyIP("$ABUSE_IP"))
+		}
+
+		if config.Security.CloudProtection.BlockBulletproofIP {
+			rules = append(rules, MkDenyIP("$BULLETPROOF"))
+		}
 	}
 
 	// pingを許可するなら許可
