@@ -112,6 +112,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 	}
 
 	// AlwaysDenyTorならTorのIPを拒否
+	// Torの出口のIPは頻繁に変動するため、将来的にキャッシュの対象となるGenIpDefineRulesで生成せずここで毎回取得する
 	if config.Security.AlwaysDenyTor {
 		for _, denyIP := range ip.FetchIpSet("https://check.torproject.org/torbulkexitlist?ip=1.1.1.1") {
 			alwaysDenyIP = append(alwaysDenyIP, denyIP)
