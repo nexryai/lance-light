@@ -111,6 +111,13 @@ func GenRulesFromConfig(config *core.Config) []string {
 		alwaysDenyIP = append(alwaysDenyIP, ip.GetIpRangeFromASN(denyASN)...)
 	}
 
+	// AlwaysDenyTorならTorのIPを拒否
+	if config.Security.AlwaysDenyTor {
+		for _, denyIP := range ip.FetchIpSet("https://check.torproject.org/torbulkexitlist?ip=1.1.1.1") {
+			alwaysDenyIP = append(alwaysDenyIP, denyIP)
+		}
+	}
+
 	// alwaysDenyIPを拒否
 	for _, denyIP := range alwaysDenyIP {
 		rules = append(rules, MkDenyIP(denyIP))

@@ -25,7 +25,7 @@ security:
   alwaysDenyIP: ["1.1.1.1"]
   alwaysDenyASN: ["53667", "397702"]
   alwaysDenyAbuseIP: true
-  alwaysDenyTor: false
+  alwaysDenyTor: true
 
 ports:
   - port: 80

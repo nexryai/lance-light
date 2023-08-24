@@ -44,13 +44,11 @@ type SecurityConfig struct {
 }
 
 type PortConfig struct {
-	Port             int    `yaml:"port"`
-	Proto            string `yaml:"proto"`
-	AllowIP          string `yaml:"allowIP"`
-	AllowCountry     string `yaml:"allowCountry"`
-	DenyFromAbuseIPs bool   `yaml:"denyFromAbuseIPs"`
-	DenyFromTorIPs   bool   `yaml:"denyFromTorIPs"`
-	AllowInterface   string `yaml:"allowInterface"`
+	Port           int    `yaml:"port"`
+	Proto          string `yaml:"proto"`
+	AllowIP        string `yaml:"allowIP"`
+	AllowCountry   string `yaml:"allowCountry"`
+	AllowInterface string `yaml:"allowInterface"`
 }
 
 type RouterConfig struct {
