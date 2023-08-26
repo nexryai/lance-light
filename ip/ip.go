@@ -63,10 +63,11 @@ func FetchIpSet(url string) []string {
 
 	var ips []string
 	for scanner.Scan() {
-		if isValidIP(scanner.Text()) {
-			ips = append(ips, scanner.Text())
+		i := scanner.Text()
+		if isValidIP(i) && !IsIPv6(i) {
+			ips = append(ips, i)
 		} else {
-			core.MsgWarn("FetchIpSet: Ignore invalid line.")
+			//core.MsgWarn("FetchIpSet: Ignore invalid line.")
 		}
 	}
 
