@@ -14,8 +14,7 @@ func applyNftablesRules(configFilePath string) {
 }
 
 func flushNftablesRules() {
-	// FIXME: これやると何故かsshに繋がらなくなることがあるっぽい
-	core.ExecCommand("nft", []string{"flush", "ruleset"})
+	core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
 }
 
 func writeRulesFromConfig(config *core.Config) bool {
@@ -124,7 +123,7 @@ func main() {
 	} else if operation == "disable" {
 
 		// 設定をアンロードする
-		core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
+		flushNftablesRules()
 		core.MsgInfo("LanceLight firewall is disabled.")
 
 	} else if operation == "report" {
