@@ -26,6 +26,9 @@ security:
   alwaysDenyASN: ["53667", "397702"]
   alwaysDenyTor: true
 
+  disablePortScanProtection: false
+  disableIpFragmentsBlock: false
+
   # クラウドプロテクション: Lance Networkを使用したアグレッシブな保護機能
   # 有効化してもサーバーからブロックされたIPなどの情報が送信されることはありませんが、正当なアクセスにも影響が出る可能性があります。
   # これは個人用のサーバーなどをより安全にするのに有効です。

@@ -276,7 +276,15 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 	// 不正なパケットととりあえず全部弾くべき攻撃を遮断
 	// inputチェーンよりpreroutingの方が優先されるのでここに入れる
-	rules = append(rules, MkDropInvalid(), MkBlockIPFragments(), MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
+	rules = append(rules, MkDropInvalid())
+	if !config.Security.DisablePortScanProtection {
+		core.MsgWarn("Port scan protection is DISABLED!")
+		rules = append(rules, MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
+	}
+
+	if !config.Security.DisableIpFragmentsBlock {
+		rules = append(rules, MkBlockIPFragments())
+	}
 
 	if config.Router.ForceDNS != "" {
 		for _, lanInterface := range config.Router.LANInterfaces {
