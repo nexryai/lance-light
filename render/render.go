@@ -153,7 +153,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 	// pingを許可するなら許可
 	if config.Default.AllowPing {
-		rules = append(rules, MkAllowPing())
+		rules = append(rules, MkAllowPing(), MkAllowPingICMPv6())
 	}
 
 	if config.Security.AlwaysDenyAbuseIP {
@@ -266,31 +266,33 @@ func GenRulesFromConfig(config *core.Config) []string {
 	}
 
 	// PREROUTINGチェーン
-	if shouldGenPreroutingRules(config) {
-		rules = append(rules, MkChainStart("prerouting"))
+	rules = append(rules, MkChainStart("prerouting"))
 
-		if config.Router.ConfigAsRouter {
-			rules = append(rules, MkBaseRoutingRule("prerouting"))
-		} else if len(config.Nat) != 0 {
-			rules = append(rules, MkBaseNatRule())
-		}
-
-		if config.Router.ForceDNS != "" {
-			for _, lanInterface := range config.Router.LANInterfaces {
-				rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
-				rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
-			}
-		}
-
-		// ポート転送有効時のNAT構成
-		if len(config.Nat) != 0 {
-			for _, r := range config.Nat {
-				rules = append(rules, MkNat(&r))
-			}
-		}
-
-		rules = append(rules, MkChainEnd())
+	if config.Router.ConfigAsRouter {
+		rules = append(rules, MkBaseRoutingRule("prerouting"))
+	} else if len(config.Nat) != 0 {
+		rules = append(rules, MkBaseNatRule())
 	}
+
+	// 不正なパケットととりあえず全部弾くべき攻撃を遮断
+	// inputチェーンよりpreroutingの方が優先されるのでここに入れる
+	rules = append(rules, MkDropInvalid(), MkBlockIPFragments(), MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
+
+	if config.Router.ForceDNS != "" {
+		for _, lanInterface := range config.Router.LANInterfaces {
+			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
+			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
+		}
+	}
+
+	// ポート転送有効時のNAT構成
+	if len(config.Nat) != 0 {
+		for _, r := range config.Nat {
+			rules = append(rules, MkNat(&r))
+		}
+	}
+
+	rules = append(rules, MkChainEnd())
 
 	// テーブル終了
 	rules = append(rules, MkTableEnd())
