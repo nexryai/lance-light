@@ -151,7 +151,11 @@ func MkBaseRoutingRule(route string) string {
 }
 
 func MkMasquerade(srcIP string, outInterface string) string {
-	return fmt.Sprintf("\t\tip saddr %s oifname %s masquerade", srcIP, outInterface)
+	if ip.IsIPv6(srcIP) {
+		return fmt.Sprintf("\t\tip6 saddr %s oifname %s masquerade", srcIP, outInterface)
+	} else {
+		return fmt.Sprintf("\t\tip saddr %s oifname %s masquerade", srcIP, outInterface)
+	}
 }
 
 func MkMasqueradeForNat(c *core.NatConfig) string {

@@ -68,11 +68,15 @@ router:
   wanInterface: "eth0"
 
   # プライベートネットワークのCIDRとインターフェイス
-  privateNetworks: ["192.168.10.0/24", "192.168.20.0/24"]
+  # IPv6のアドレスを入れることでNAT66を有効にできます
+  privateNetworks: ["192.168.10.0/24", "192.168.20.0/24", "fd11:0801::2/64"]
   lanInterfaces: ["eth1", "wg0"]
 
   # LAN内のデバイスに特定のDNSを強制する（AdGuard Home使用時などに有効）
   forceDNS: "192.168.0.1"
+
+  # NAT66を有効にする
+
 
   # カスタムルート設定
   # LAN→WAN以外も許可したいとき（例えばVPNからLANへのアクセスを許可したい場合）などに使う
