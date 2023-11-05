@@ -25,7 +25,7 @@ func MkBaseRules(allowed bool, direction string) string {
 		policy = "accept"
 	}
 
-	return fmt.Sprintf(`		type filter hook %s priority 0; policy %s;`, direction, policy)
+	return fmt.Sprintf("\t\ttype filter hook %s priority 0; policy %s;", direction, policy)
 }
 
 // FixMe: 関数名おかしい気がする？
@@ -47,7 +47,7 @@ func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid boo
 		invalidRule = "accept"
 	}
 
-	return fmt.Sprintf(`		ct state vmap { established : %s, related : %s, invalid : %s } `, establishedRule, relatedRule, invalidRule)
+	return fmt.Sprintf("\t\tct state vmap { established : %s, related : %s, invalid : %s } ", establishedRule, relatedRule, invalidRule)
 }
 
 func MkAllowLoopbackInterface() string {
@@ -56,8 +56,13 @@ func MkAllowLoopbackInterface() string {
 
 func MkAllowPing() string {
 	// ToDo: レートリミット変えられるようにするべき？
-	rateLimitPerSec := 5
-	return fmt.Sprintf(`		icmp type echo-request limit rate %d/second accept`, rateLimitPerSec)
+	rateLimitPerSec := 4
+	return fmt.Sprintf("\t\tip protocol icmp icmp type echo-request limit rate %d/second accept; ip protocol icmp icmp type echo-request log prefix \"[LanceLight] icmp echo-request rate limit exceeded: \" counter drop;", rateLimitPerSec)
+}
+
+func MkAllowPingICMPv6() string {
+	rateLimitPerSec := 4
+	return fmt.Sprintf("\t\tip6 nexthdr icmpv6 icmpv6 type echo-request limit rate %d/second accept; ip6 nexthdr icmpv6 icmpv6 type echo-request log prefix \"[LanceLight] icmpv6 echo-request rate limit exceeded: \" counter drop;", rateLimitPerSec)
 }
 
 func MkAllowIPv6Ad() string {
@@ -67,9 +72,9 @@ func MkAllowIPv6Ad() string {
 
 func MkDenyIP(denyIp string) string {
 	if ip.IsIPv6(denyIp) {
-		return fmt.Sprintf(`		ip6 saddr %s drop`, denyIp)
+		return fmt.Sprintf("\t\tip6 saddr %s drop", denyIp)
 	} else {
-		return fmt.Sprintf(`		ip saddr %s drop`, denyIp)
+		return fmt.Sprintf("\t\tip saddr %s drop", denyIp)
 	}
 }
 
@@ -173,6 +178,10 @@ func MkNat(c *core.NatConfig) string {
 // ログ関係
 func MkLoggingRules(policy string) string {
 	return fmt.Sprintf("\t\tlog prefix \"[LanceLight] Access Denied: \" counter %s", policy)
+}
+
+func MkBlock() string {
+	return "\t\ttype nat hook prerouting priority dstnat;"
 }
 
 // チェーンとテーブル関係
