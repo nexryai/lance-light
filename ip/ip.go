@@ -2,9 +2,11 @@ package ip
 
 import (
 	"bufio"
+	"fmt"
 	"lance-light/core"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -53,7 +55,7 @@ func IsReportableAddress(ip string) bool {
 	}
 }
 
-func FetchIpSet(url string) []string {
+func FetchIpSet(url string, allowIPv6 bool) []string {
 	resp, err := http.Get(url)
 	core.ExitOnError(err, "failed to fetch ipset.")
 
@@ -64,12 +66,31 @@ func FetchIpSet(url string) []string {
 	var ips []string
 	for scanner.Scan() {
 		i := scanner.Text()
-		if isValidIP(i) && !IsIPv6(i) {
-			ips = append(ips, i)
+		if !isValidIP(i) {
+			core.MsgWarn("Ignore invalid ip")
+		} else if !allowIPv6 && IsIPv6(i) {
+			// ToDo
 		} else {
-			//core.MsgWarn("FetchIpSet: Ignore invalid line.")
+			ips = append(ips, i)
 		}
 	}
 
 	return ips
+}
+
+func ExtractIPAddress(input string) (string, error) {
+	// IPアドレスの正規表現パターン
+	ipPattern := `(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})`
+
+	// 正規表現にマッチする部分を抽出
+	re := regexp.MustCompile(ipPattern)
+	matches := re.FindStringSubmatch(input)
+
+	// マッチが見つからなかった場合
+	if len(matches) < 2 {
+		return "", fmt.Errorf("no ip found")
+	}
+
+	// 抽出したIPアドレスを返す
+	return matches[1], nil
 }

@@ -3,6 +3,7 @@ package render
 import (
 	"fmt"
 	"lance-light/core"
+	"lance-light/entities"
 	"lance-light/ip"
 	"strings"
 )
@@ -158,10 +159,6 @@ func MkMasquerade(srcIP string, outInterface string) string {
 	}
 }
 
-func MkMasqueradeForNat(c *core.NatConfig) string {
-	return fmt.Sprintf("\t\tiifname %s ip saddr %s masquerade", c.Interface, c.AllowIP)
-}
-
 func MkMasqueradeForCustomRoutes(c *core.CustomRoutesConfig) string {
 	return fmt.Sprintf("\t\tiifname %s ip saddr %s ip daddr %s masquerade", c.AllowInterface, c.AllowIP, c.AllowDST)
 }
@@ -174,6 +171,7 @@ func MkBaseNatRule() string {
 	return "\t\ttype nat hook prerouting priority dstnat;"
 }
 
+// いつかMkDnatにする
 func MkNat(c *core.NatConfig) string {
 	rule := fmt.Sprintf("\t\tiifname \"%s\" ", c.Interface)
 
@@ -183,6 +181,11 @@ func MkNat(c *core.NatConfig) string {
 
 	rule += fmt.Sprintf("ip daddr { %s } %s dport %s dnat %s", c.DstIP, c.Proto, c.DstPort, c.NatTo)
 	return rule
+}
+
+func MkSnatForDnat(c *entities.SnatForDnat) string {
+	return fmt.Sprintf("\t\toifname %s ip saddr %s counter snat to %s",
+		c.ExternalInterface, c.InternalIP, c.ExternalIP)
 }
 
 // ログ関係
@@ -210,6 +213,14 @@ func MkBlockTcpNull() string {
 
 func MkBlockTcpMss() string {
 	return "\t\ttcp flags syn tcp option maxseg size 1-535 log prefix \"[LanceLight] TCP MSS blocked: \" counter drop"
+}
+
+func MkJumpToSynFloodLimiter() string {
+	return "\t\ttcp flags & (fin|syn|rst|ack) == syn counter jump syn-flood"
+}
+
+func MkRateLimit(rate uint, burst uint, name string) string {
+	return fmt.Sprintf("\t\tlimit rate %d/second burst %d packets counter return; log prefix \"[LanceLight] %s attack mitigated: \" counter drop;", rate, burst, name)
 }
 
 // チェーンとテーブル関係

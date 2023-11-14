@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lorenzosaino/go-sysctl"
 	"lance-light/core"
+	"lance-light/entities"
 	"lance-light/ip"
 )
 
@@ -41,10 +42,10 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 		var clouflareIPsV4 []string
 		var clouflareIPsV6 []string
 
-		clouflareIPsV4 = ip.FetchIpSet("https://www.cloudflare.com/ips-v4")
+		clouflareIPsV4 = ip.FetchIpSet("https://www.cloudflare.com/ips-v4", false)
 
 		if config.Default.EnableIPv6 {
-			clouflareIPsV6 = ip.FetchIpSet("https://www.cloudflare.com/ips-v6")
+			clouflareIPsV6 = ip.FetchIpSet("https://www.cloudflare.com/ips-v6", true)
 		}
 
 		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
@@ -64,19 +65,19 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 
 	for _, c := range countries {
 		url := fmt.Sprintf("https://www.ipdeny.com/ipblocks/data/countries/%s.zone", c)
-		r := MkDefine(c, ip.FetchIpSet(url))
+		r := MkDefine(c, ip.FetchIpSet(url, false))
 		rules = append(rules, r)
 	}
 
 	// クラウドプロテクション
 	if config.Security.CloudProtection.EnableCloudProtection {
-		r := MkDefine("PUBLIC_PROXY", ip.FetchIpSet("https://guard.sda1.net/data/ipset/public-proxy.ipset"))
+		r := MkDefine("PUBLIC_PROXY", ip.FetchIpSet("https://guard.sda1.net/data/ipset/public-proxy.ipset", false))
 		rules = append(rules, r)
 
-		r = MkDefine("ABUSE_IP", ip.FetchIpSet("https://guard.sda1.net/data/ipset/abuse.ipset"))
+		r = MkDefine("ABUSE_IP", ip.FetchIpSet("https://guard.sda1.net/data/ipset/abuse.ipset", false))
 		rules = append(rules, r)
 
-		r = MkDefine("BULLETPROOF", ip.FetchIpSet("https://guard.sda1.net/data/ipset/bulletproof.ipset"))
+		r = MkDefine("BULLETPROOF", ip.FetchIpSet("https://guard.sda1.net/data/ipset/bulletproof.ipset", false))
 		rules = append(rules, r)
 	}
 
@@ -126,7 +127,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 	// AlwaysDenyTorならTorのIPを拒否
 	// Torの出口のIPは頻繁に変動するため、将来的にキャッシュの対象となるGenIpDefineRulesで生成せずここで毎回取得する
 	if config.Security.AlwaysDenyTor {
-		for _, denyIP := range ip.FetchIpSet("https://check.torproject.org/torbulkexitlist?ip=1.1.1.1") {
+		for _, denyIP := range ip.FetchIpSet("https://check.torproject.org/torbulkexitlist?ip=1.1.1.1", false) {
 			alwaysDenyIP = append(alwaysDenyIP, denyIP)
 		}
 	}
@@ -243,6 +244,23 @@ func GenRulesFromConfig(config *core.Config) []string {
 			MkChainStart("postrouting"),
 			MkBaseRoutingRule("postrouting"))
 
+		// DNATするときの戻り通信用SNAT
+		if len(config.Nat) != 0 {
+			for _, c := range config.Nat {
+				internalIP, err := ip.ExtractIPAddress(c.NatTo)
+				if err != nil {
+					panic("invalid ip in config")
+				}
+
+				snat := entities.SnatForDnat{
+					ExternalInterface: c.Interface,
+					InternalIP:        internalIP,
+					ExternalIP:        c.DstIP,
+				}
+				rules = append(rules, MkSnatForDnat(&snat))
+			}
+		}
+
 		if config.Router.ConfigAsRouter {
 			// ルーターとして構成するときのLAN→WANのマスカレード
 			for _, privateNetworkAddress := range config.Router.PrivateNetworkAddresses {
@@ -252,13 +270,6 @@ func GenRulesFromConfig(config *core.Config) []string {
 			// カスタムルート設定時のマスカレード設定
 			for _, r := range config.Router.CustomRoutes {
 				rules = append(rules, MkMasqueradeForCustomRoutes(&r))
-			}
-		}
-
-		// ポート転送有効時のマスカレード
-		if len(config.Nat) != 0 {
-			for _, r := range config.Nat {
-				rules = append(rules, MkMasqueradeForNat(&r))
 			}
 		}
 
@@ -278,13 +289,17 @@ func GenRulesFromConfig(config *core.Config) []string {
 	// inputチェーンよりpreroutingの方が優先されるのでここに入れる
 	rules = append(rules, MkDropInvalid())
 	if !config.Security.DisablePortScanProtection {
-		core.MsgWarn("Port scan protection is DISABLED!")
 		rules = append(rules, MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
+	} else {
+		core.MsgWarn("Port scan protection is DISABLED!")
 	}
 
 	if !config.Security.DisableIpFragmentsBlock {
 		rules = append(rules, MkBlockIPFragments())
 	}
+
+	// SYN-floodレートリミット
+	rules = append(rules, MkJumpToSynFloodLimiter())
 
 	if config.Router.ForceDNS != "" {
 		for _, lanInterface := range config.Router.LANInterfaces {
@@ -301,6 +316,11 @@ func GenRulesFromConfig(config *core.Config) []string {
 	}
 
 	rules = append(rules, MkChainEnd())
+
+	// SYN-flood対策
+	rules = append(rules, MkChainStart("syn-flood"),
+		MkRateLimit(30, 60, "SYN-flood"),
+		MkChainEnd())
 
 	// テーブル終了
 	rules = append(rules, MkTableEnd())
