@@ -18,7 +18,16 @@ jobs:
           go-version: '1.20'
 
       - name: Build
-        run: go build -o llfctl main.go
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o llfctl-amd64 main.go
+          GOOS=linux GOARCH=arm go build -o llfctl-arm main.go
+          GOOS=linux GOARCH=arm64 go build -o llfctl-arm64 main.go
+          GOOS=linux GOARCH=mips go build -o llfctl-mips main.go
+          GOOS=linux GOARCH=mips64 go build -o llfctl-mips64 main.go
+          GOOS=linux GOARCH=riscv64 go build -o llfctl-riscv64 main.go
+          GOOS=linux GOARCH=ppc64 go build -o llfctl-ppc64 main.go
+          GOOS=linux GOARCH=ppc64le go build -o llfctl-ppc64le main.go
+          GOOS=linux GOARCH=s390x go build -o llfctl-s390x main.go
 
       - name: Create release
         id: create_release
@@ -33,9 +42,17 @@ jobs:
 
       - name: Compress with zip
         run: |
-          zip release llfctl
+          zip release-amd64 llfctl-amd64
+          zip release-arm llfctl-arm
+          zip release-arm64 llfctl-arm64
+          zip release-mips llfctl-mips
+          zip release-mips64 llfctl-mips64
+          zip release-riscv64 llfctl-riscv64
+          zip release-ppc64 llfctl-ppc64
+          zip release-ppc64le llfctl-ppc64le
+          zip release-s390x llfctl-s390x
 
-      - name: Upload Release Asset
+      - name: Upload Release Asset (amd64)
         id: upload-release-asset
         uses: actions/upload-release-asset@v1.0.1
         env:
@@ -44,4 +61,92 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./release.zip
           asset_name: LanceLight-linux-amd64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (arm)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-arm.zip
+          asset_name: LanceLight-linux-arm.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (arm64)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-arm64.zip
+          asset_name: LanceLight-linux-arm64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (mips)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-mips.zip
+          asset_name: LanceLight-linux-mips.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (mips64)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-mips64.zip
+          asset_name: LanceLight-linux-mips64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (riscv64)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-riscv64.zip
+          asset_name: LanceLight-linux-riscv64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (ppc64)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-ppc64.zip
+          asset_name: LanceLight-linux-ppc64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (ppc64le)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-ppc64le.zip
+          asset_name: LanceLight-linux-ppc64le.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (s390x)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-s390x.zip
+          asset_name: LanceLight-linux-s390x.zip
           asset_content_type: application/zip

@@ -1,0 +1,30 @@
+name: Test build
+
+on:
+  push:
+    branches:
+      - *
+
+jobs:
+  release:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Build
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o llfctl-amd64 main.go
+          GOOS=linux GOARCH=arm go build -o llfctl-arm main.go
+          GOOS=linux GOARCH=arm64 go build -o llfctl-arm64 main.go
+          GOOS=linux GOARCH=mips go build -o llfctl-mips main.go
+          GOOS=linux GOARCH=mips64 go build -o llfctl-mips64 main.go
+          GOOS=linux GOARCH=riscv64 go build -o llfctl-riscv64 main.go
+          GOOS=linux GOARCH=ppc64 go build -o llfctl-ppc64 main.go
+          GOOS=linux GOARCH=ppc64le go build -o llfctl-ppc64le main.go
+          GOOS=linux GOARCH=s390x go build -o llfctl-s390x main.go

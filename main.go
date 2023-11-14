@@ -17,6 +17,10 @@ func flushNftablesRules() {
 	core.ExecCommand("nft", []string{"flush", "table", "inet", "lance"})
 }
 
+func checkConfigFile(path string) {
+	core.ExecCommand("nft", []string{"--check", "-f", path})
+}
+
 func writeRulesFromConfig(config *core.Config) bool {
 
 	// ipdefine.conf (IPのリストを定義するやつ)を生成
@@ -89,6 +93,7 @@ func main() {
 	if operation == "apply" {
 
 		writeRulesFromConfig(&config)
+		checkConfigFile(config.Nftables.NftablesFilePath)
 
 		// nftコマンドを実行して適用
 		flushNftablesRules()
@@ -99,6 +104,7 @@ func main() {
 	} else if operation == "enable" {
 
 		writeRulesFromConfig(&config)
+		checkConfigFile(config.Nftables.NftablesFilePath)
 
 		// nftコマンドを実行して適用
 		applyNftablesRules(config.Nftables.NftablesFilePath)
