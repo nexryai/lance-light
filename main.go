@@ -58,7 +58,7 @@ func showHelp() {
 		"Apply rules when configuration is updated:\n  ▶ llfctl apply\n\n",
 		"Disable firewall:\n  ▶ llfctl disable\n\n",
 		"[options]\n",
-		"-f [PATH]: Specify the path to the configuration file (Default: /etc/lance.yml)\n")
+		"-f [PATH]: Specify the path to the configuration file (Default: /etc/lance.yml)")
 }
 
 func main() {
