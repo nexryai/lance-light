@@ -1,0 +1,26 @@
+name: Go Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install build dependency
+        run: |
+          sudo apt update
+          sudo apt install -y golang
+
+      - name: Run Tests
+        run: go test ./...

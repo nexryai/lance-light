@@ -91,6 +91,10 @@ func ExtractIPAddress(input string) (string, error) {
 		return "", fmt.Errorf("no ip found")
 	}
 
+	if !isValidIP(matches[1]) {
+		return "", fmt.Errorf("invalid ip found")
+	}
+
 	// 抽出したIPアドレスを返す
 	return matches[1], nil
 }
