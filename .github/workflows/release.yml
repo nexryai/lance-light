@@ -53,7 +53,7 @@ jobs:
           zip release-s390x llfctl-s390x
 
       - name: Upload Release Asset (amd64)
-        id: upload-release-asset
+        id: upload-release-asset-amd64
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,7 +64,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (arm)
-        id: upload-release-asset
+        id: upload-release-asset-arm
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,7 +75,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (arm64)
-        id: upload-release-asset
+        id: upload-release-asset-arm64
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -86,7 +86,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (mips)
-        id: upload-release-asset
+        id: upload-release-asset-mips
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -97,7 +97,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (mips64)
-        id: upload-release-asset
+        id: upload-release-asset-mips64
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -108,7 +108,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (riscv64)
-        id: upload-release-asset
+        id: upload-release-asset-riscv64
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -119,7 +119,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (ppc64)
-        id: upload-release-asset
+        id: upload-release-asset-ppc64
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (ppc64le)
-        id: upload-release-asset
+        id: upload-release-asset-ppc64le
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +141,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Asset (s390x)
-        id: upload-release-asset
+        id: upload-release-asset-s390x
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -47,7 +47,7 @@ if [ ! -f /etc/lance.yml ]; then
   curl https://raw.githubusercontent.com/nexryai/lance-light/main/config.default.yml > /etc/lance.yml
 fi
 
-# ResotreconがあるならSELinuxに怒られないようにする
+# restoreconがあるならSELinuxに怒られないようにする
 if command -v restorecon >/dev/null 2>&1; then
     restorecon -R /usr/bin/llfctl
 fi
