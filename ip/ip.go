@@ -41,7 +41,7 @@ func CheckIPAddresses(ipAddresses []string) bool {
 }
 
 func IsIPv6(input string) bool {
-	return strings.Contains(input, ":")
+	return isValidIP(input) && strings.Contains(input, ":")
 }
 
 // AbuseIPDBに通報可能なIPかどうか
@@ -58,6 +58,10 @@ func IsReportableAddress(ip string) bool {
 func FetchIpSet(url string, allowIPv6 bool) []string {
 	resp, err := http.Get(url)
 	core.ExitOnError(err, "failed to fetch ipset.")
+
+	if resp.StatusCode != 200 {
+		core.ExitOnError(fmt.Errorf("status code: %d", resp.StatusCode), "failed to fetch ipset.")
+	}
 
 	defer resp.Body.Close()
 

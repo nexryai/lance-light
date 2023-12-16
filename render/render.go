@@ -12,18 +12,6 @@ import (
 nftablesルールをレンダリングする。基本的に1行の内容を1つづつ配列に格納して返す
 */
 
-func shouldGenPreroutingRules(config *core.Config) bool {
-	if config.Router.ConfigAsRouter && config.Router.ForceDNS != "" {
-		// ForceDNSが設定されているならtrue
-		return true
-	} else if len(config.Nat) != 0 {
-		// Nat設定があるならtrue
-		return true
-	} else {
-		return false
-	}
-}
-
 func shouldDefineCloudflareIPs(config *core.Config) bool {
 	for _, p := range config.Ports {
 		if p.AllowIP == "cloudflare" || p.AllowIP == "cloudflare_v6" {
@@ -69,22 +57,16 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 		rules = append(rules, r)
 	}
 
-	// クラウドプロテクション
-	if config.Security.CloudProtection.EnableCloudProtection {
-		r := MkDefine("PUBLIC_PROXY", ip.FetchIpSet("https://guard.sda1.net/data/ipset/public-proxy.ipset", false))
-		rules = append(rules, r)
-
-		r = MkDefine("ABUSE_IP", ip.FetchIpSet("https://guard.sda1.net/data/ipset/abuse.ipset", false))
-		rules = append(rules, r)
-
-		r = MkDefine("BULLETPROOF", ip.FetchIpSet("https://guard.sda1.net/data/ipset/bulletproof.ipset", false))
-		rules = append(rules, r)
-	}
-
 	// ユーザー定義のipsetをロードする
 	for _, s := range config.IpSet {
-		r := MkDefine(s.Name, s.Ip)
-		rules = append(rules, r)
+		var addrs []string
+
+		if s.Url != "" {
+			addrs = append(addrs, ip.FetchIpSet(s.Url, false)...)
+		}
+
+		addrs = append(addrs, s.Ip...)
+		rules = append(rules, MkDefine(s.Name, addrs))
 	}
 
 	return rules, nil
@@ -137,21 +119,6 @@ func GenRulesFromConfig(config *core.Config) []string {
 		rules = append(rules, MkDenyIP(denyIP))
 	}
 
-	// クラウド保護
-	if config.Security.CloudProtection.EnableCloudProtection {
-		if config.Security.CloudProtection.BlockPublicProxy {
-			rules = append(rules, MkDenyIP("$PUBLIC_PROXY"))
-		}
-
-		if config.Security.CloudProtection.BlockAbuseIP {
-			rules = append(rules, MkDenyIP("$ABUSE_IP"))
-		}
-
-		if config.Security.CloudProtection.BlockBulletproofIP {
-			rules = append(rules, MkDenyIP("$BULLETPROOF"))
-		}
-	}
-
 	// pingを許可するなら許可
 	if config.Default.AllowPing {
 		rules = append(rules, MkAllowPing(), MkAllowPingICMPv6())
@@ -165,6 +132,9 @@ func GenRulesFromConfig(config *core.Config) []string {
 	if config.Default.EnableIPv6 {
 		rules = append(rules, MkAllowIPv6Ad())
 	}
+
+	// SYN-floodレートリミット
+	rules = append(rules, MkJumpToSynFloodLimiter())
 
 	// 許可したポートをallow
 	for _, r := range config.Ports {
@@ -297,9 +267,6 @@ func GenRulesFromConfig(config *core.Config) []string {
 	if !config.Security.DisableIpFragmentsBlock {
 		rules = append(rules, MkBlockIPFragments())
 	}
-
-	// SYN-floodレートリミット
-	rules = append(rules, MkJumpToSynFloodLimiter())
 
 	if config.Router.ForceDNS != "" {
 		for _, lanInterface := range config.Router.LANInterfaces {

@@ -24,6 +24,7 @@ type NftablesConfig struct {
 
 type IpSetConfig struct {
 	Name string   `yaml:"name"`
+	Url  string   `yaml:"url"`
 	Ip   []string `yaml:"ip"`
 }
 
