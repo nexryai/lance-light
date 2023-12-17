@@ -35,11 +35,12 @@ case $ARCHITECTURE in
 esac
 
 ZIPNAME="LanceLight-linux-$ARCH.zip"
+FILENAME="llfctl-$ARCH.zip"
 
 wget "https://github.com/nexryai/lance-light/releases/latest/download/$ZIPNAME"
 unzip $ZIPNAME
 rm $ZIPNAME
-mv llfctl /usr/bin/
+mv $FILENAME /usr/bin/llfctl
 
 curl https://raw.githubusercontent.com/nexryai/lance-light/main/systemd/lance.service > /etc/systemd/system/lance.service
 
