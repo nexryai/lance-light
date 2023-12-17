@@ -35,7 +35,7 @@ case $ARCHITECTURE in
 esac
 
 ZIPNAME="LanceLight-linux-$ARCH.zip"
-FILENAME="llfctl-$ARCH.zip"
+FILENAME="llfctl-$ARCH"
 
 wget "https://github.com/nexryai/lance-light/releases/latest/download/$ZIPNAME"
 unzip $ZIPNAME
