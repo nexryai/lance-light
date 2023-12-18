@@ -5,10 +5,10 @@ nftables:
 
 default:
   allowAllIn: false
-  allowAllOut: true
+  allowAllOut: false
   allowAllFwd: false
   allowPing: true
-  enableIPv6: false
+  enableIPv6: true
   enableLogging: true
 
 ipset:
@@ -45,6 +45,24 @@ ports:
     allowIP: "192.168.1.0/24"
     allowInterface: "eth1"
 
+outbound:
+  compatibility:
+    - tailscale
+    - cloudflare_tunnel
+
+  allowed:
+    - dport: 53
+      proto: "udp"
+
+    - dport: 80
+      proto: "tcp"
+
+    - dport: 443
+      proto: "tcp"
+
+    - dport: 5432
+      proto: "tcp"
+      dstIP: "100.64.0.0/10"
 
 # ルーター設定
 router:

@@ -11,6 +11,7 @@ type Config struct {
 	IpSet     []IpSetConfig  `yaml:"ipset"`
 	Security  SecurityConfig `yaml:"security"`
 	Ports     []PortConfig   `yaml:"ports"`
+	Outgoing  OutgoingConfig `yaml:"outbound"`
 	Router    RouterConfig   `yaml:"router"`
 	Nat       []NatConfig    `yaml:"nat"`
 	Report    ReportConfig   `yaml:"report"`
@@ -60,6 +61,17 @@ type PortConfig struct {
 	AllowIP        string `yaml:"allowIP"`
 	AllowCountry   string `yaml:"allowCountry"`
 	AllowInterface string `yaml:"allowInterface"`
+}
+
+type OutgoingConfig struct {
+	Compatibility []string              `yaml:"compatibility"`
+	Allowed       []OutgoingAllowConfig `yaml:"allowed"`
+}
+
+type OutgoingAllowConfig struct {
+	Dport string `yaml:"dport"`
+	Proto string `yaml:"proto"`
+	DstIP string `yaml:"dstIP"`
 }
 
 type RouterConfig struct {

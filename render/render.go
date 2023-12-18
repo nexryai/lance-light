@@ -12,6 +12,15 @@ import (
 nftablesルールをレンダリングする。基本的に1行の内容を1つづつ配列に格納して返す
 */
 
+func containsString(arr []string, target string) bool {
+	for _, element := range arr {
+		if element == target {
+			return true
+		}
+	}
+	return false
+}
+
 func shouldDefineCloudflareIPs(config *core.Config) bool {
 	for _, p := range config.Ports {
 		if p.AllowIP == "cloudflare" || p.AllowIP == "cloudflare_v6" {
@@ -164,8 +173,66 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 	// OUTPUTチェーン
 	rules = append(rules, MkChainStart("output"),
-		MkBaseRules(config.Default.AllowAllOut, "output"),
-		MkChainEnd())
+		MkBaseRules(config.Default.AllowAllOut, "output"))
+
+	if !config.Default.AllowAllOut {
+		// ICMPとループバックは許可
+		rules = append(rules, MkAllowLoopbackInterface(),
+			MkAllowIcmpOutgoing())
+
+		// IPv6が有効ならIPv6のICMPも許可
+		if config.Default.EnableIPv6 {
+			rules = append(rules, MkAllowIcmpv6Outgoing())
+		}
+
+		for _, r := range config.Outgoing.Allowed {
+			if r.Proto == "" {
+				r.Proto = "tcp"
+				rules = append(rules, MkAllowOutgoing(&r))
+				r.Proto = "udp"
+				rules = append(rules, MkAllowOutgoing(&r))
+			} else {
+				rules = append(rules, MkAllowOutgoing(&r))
+			}
+		}
+
+		// Tailscaleと併用できるようにする (https://tailscale.com/kb/1082/firewall-ports)
+		//  - 41641への発信と3478への発信を許可する
+		if containsString(config.Outgoing.Compatibility, "tailscale") {
+			rules = append(rules, MkAllowOutgoing(&core.OutgoingAllowConfig{
+				Dport: "41641",
+				Proto: "udp",
+			}), MkAllowOutgoing(&core.OutgoingAllowConfig{
+				Dport: "3478",
+				Proto: "udp",
+			}))
+		}
+
+		// Cloudflaredと併用できるようにする
+		// https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/deploy-tunnels/tunnel-with-firewall/
+		if containsString(config.Outgoing.Compatibility, "cloudflare_tunnel") {
+			rules = append(rules, MkAllowOutgoing(&core.OutgoingAllowConfig{
+				Dport: "7844",
+				Proto: "tcp",
+			}), MkAllowOutgoing(&core.OutgoingAllowConfig{
+				Dport: "7844",
+				Proto: "udp",
+			}), MkAllowOutgoing(&core.OutgoingAllowConfig{
+				Dport: "443",
+				Proto: "tcp",
+			}))
+		}
+
+		// SYNじゃない（=こっちからの発信じゃない）なら許可
+		rules = append(rules, MkAllowNonSynOutgoing())
+
+		// ログが有効ならログする
+		if config.Default.EnableLogging {
+			rules = append(rules, MkLoggingForOutgoing())
+		}
+	}
+
+	rules = append(rules, MkChainEnd())
 
 	// FORWARDチェーン
 	rules = append(rules, MkChainStart("forward"))

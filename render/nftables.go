@@ -134,6 +134,38 @@ func MkAllowPort(c *core.PortConfig) string {
 	return rule
 }
 
+// Outgoingルール
+func MkAllowIcmpOutgoing() string {
+	return "\t\tip protocol icmp accept"
+}
+
+func MkAllowIcmpv6Outgoing() string {
+	return "\t\ticmpv6 type {echo-request,echo-reply,nd-neighbor-solicit,nd-neighbor-advert,nd-router-solicit,nd-router-advert,mld-listener-query,destination-unreachable,packet-too-big,time-exceeded,parameter-problem} accept"
+}
+
+func MkAllowOutgoing(c *core.OutgoingAllowConfig) string {
+	rule := fmt.Sprintf("\t\t%s dport %s ", c.Proto, c.Dport)
+
+	if c.DstIP != "" {
+		if ip.IsIPv6(c.DstIP) {
+			rule += fmt.Sprintf("ip6 daddr %s ", c.DstIP)
+		} else {
+			rule += fmt.Sprintf("ip daddr %s ", c.DstIP)
+		}
+	}
+
+	rule += fmt.Sprintf("accept")
+	return rule
+}
+
+func MkAllowNonSynOutgoing() string {
+	return "\t\ttcp flags & (fin|syn|rst|psh|ack) != syn accept"
+}
+
+func MkLoggingForOutgoing() string {
+	return "\t\tlog prefix \"[LanceLight] Not allowed syn-packet was dropped: \" counter drop"
+}
+
 // ルーター用ルール
 func MkAllowFwd(allowInterface string) string {
 	return fmt.Sprintf("\t\tiifname %s accept", allowInterface)
