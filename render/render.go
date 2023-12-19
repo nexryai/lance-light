@@ -178,7 +178,8 @@ func GenRulesFromConfig(config *core.Config) []string {
 	if !config.Default.AllowAllOut {
 		// ICMPとループバックは許可
 		rules = append(rules, MkAllowLoopbackInterface(),
-			MkAllowIcmpOutgoing())
+			MkAllowIcmpOutgoing(),
+			MkAllowLocalhostOutgoing())
 
 		// IPv6が有効ならIPv6のICMPも許可
 		if config.Default.EnableIPv6 {

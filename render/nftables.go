@@ -143,6 +143,10 @@ func MkAllowIcmpv6Outgoing() string {
 	return "\t\ticmpv6 type {echo-request,echo-reply,nd-neighbor-solicit,nd-neighbor-advert,nd-router-solicit,nd-router-advert,mld-listener-query,destination-unreachable,packet-too-big,time-exceeded,parameter-problem} accept"
 }
 
+func MkAllowLocalhostOutgoing() string {
+	return "\t\tip daddr 127.0.0.1 accept"
+}
+
 func MkAllowOutgoing(c *core.OutgoingAllowConfig) string {
 	rule := fmt.Sprintf("\t\t%s dport %s ", c.Proto, c.Dport)
 
