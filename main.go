@@ -71,9 +71,11 @@ func main() {
 	// 環境変数以外にもいいやり方あるかもしれない。毎回configをcore.MsgDbg呼ぶ時に引数渡すのは面倒だから避けたい。
 	if *debugMode {
 		core.MsgInfo("debug mode!")
-		os.Setenv("LANCE_DEBUG_MODE", "true")
+		err := os.Setenv("LANCE_DEBUG_MODE", "true")
+		core.ExitOnError(err, "Failed to set environment variable.")
 	} else {
-		os.Setenv("LANCE_DEBUG_MODE", "false")
+		err := os.Setenv("LANCE_DEBUG_MODE", "false")
+		core.ExitOnError(err, "Failed to set environment variable.")
 	}
 
 	core.MsgDebug("configFilePath: " + *configFilePath)
@@ -91,7 +93,6 @@ func main() {
 	operation := flag.Arg(0)
 
 	if operation == "apply" {
-
 		writeRulesFromConfig(&config)
 		checkConfigFile(config.Nftables.NftablesFilePath)
 
@@ -100,42 +101,30 @@ func main() {
 		applyNftablesRules(config.Nftables.NftablesFilePath)
 
 		core.MsgInfo("Firewall settings have been applied successfully.")
-
 	} else if operation == "enable" {
-
 		writeRulesFromConfig(&config)
 		checkConfigFile(config.Nftables.NftablesFilePath)
 
 		// nftコマンドを実行して適用
 		applyNftablesRules(config.Nftables.NftablesFilePath)
-
 		core.MsgInfo("LanceLight firewall is enabled.")
-
 	} else if operation == "offline" {
 		// Q.これは何
 		// A.オフライン環境だとレンダリングできない（CloudflareのIPなどが取得できない）。起動直後などのオフラインな環境でも最低限の保護を有効にするため、一旦lance.ymlの変更を反映せずとりあえず古いルールをロードだけする。
 
 		// nftコマンドを実行して適用
 		applyNftablesRules(config.Nftables.NftablesFilePath)
-
 		core.MsgInfo("LanceLight firewall is enabled. (Offline mode!)")
-
 	} else if operation == "export" {
-
 		// エクスポート
 		core.MsgDebug(fmt.Sprintf("configFilePath: %s", *configFilePath))
 		exportRulesFromConfig(&config)
-
 	} else if operation == "disable" {
-
 		// 設定をアンロードする
 		flushNftablesRules()
 		core.MsgInfo("LanceLight firewall is disabled.")
-
 	} else if operation == "report" {
-
 		report.ReportAbuseIPs(&config, true)
-
 	} else if operation == "" {
 		//コマンド説明
 		showHelp()
