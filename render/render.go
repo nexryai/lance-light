@@ -32,7 +32,7 @@ func shouldDefineCloudflareIPs(config *core.Config) bool {
 }
 
 func GenIpDefineRules(config *core.Config) ([]string, error) {
-	rules := []string{}
+	var rules []string
 
 	// CloudflareのIPを取得し定義する
 	if shouldDefineCloudflareIPs(config) {
@@ -82,8 +82,7 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 }
 
 func GenRulesFromConfig(config *core.Config) []string {
-
-	rules := []string{}
+	var rules []string
 
 	// IpDefineFilePathをincludeする
 	// IpDefineFilePathにはCloudflareのIPやAubseIPがキャッシュされている
@@ -106,8 +105,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 		MkBaseInputRules(true, true, false),
 		MkAllowLoopbackInterface())
 
-	alwaysDenyIP := []string{}
-
+	var alwaysDenyIP []string
 	alwaysDenyIP = append(alwaysDenyIP, config.Security.AlwaysDenyIP...)
 
 	// alwaysDenyASNをIPのCIDRに変換

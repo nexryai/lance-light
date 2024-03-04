@@ -3,7 +3,7 @@ package ip
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"lance-light/core"
 	"net/http"
 )
@@ -30,7 +30,7 @@ func GetIpRangeFromASN(asn string) []string {
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusOK {
-		body, err := ioutil.ReadAll(response.Body)
+		body, err := io.ReadAll(response.Body)
 		core.ExitOnError(err, "Failed to convert ASN to IP CIDR. The request was successful, but parsing failed.")
 
 		var data struct {
