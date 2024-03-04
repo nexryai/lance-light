@@ -22,7 +22,6 @@ func checkConfigFile(path string) {
 }
 
 func writeRulesFromConfig(config *core.Config) bool {
-
 	// ipdefine.conf (IPのリストを定義するやつ)を生成
 	ipDefineRules, err := render.GenIpDefineRules(config)
 	if err != nil {
