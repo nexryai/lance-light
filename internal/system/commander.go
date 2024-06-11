@@ -1,8 +1,9 @@
-package core
+package system
 
 import (
 	"bytes"
 	"fmt"
+	"lance-light/internal/log"
 	"os/exec"
 	"strings"
 )
@@ -11,7 +12,7 @@ func ExecCommand(command string, args []string) {
 	cmd := exec.Command(command, args...)
 	stderr, err := cmd.CombinedOutput()
 
-	ExitOnError(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
+	log.ExitOnError(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
 		strings.Join(cmd.Args, " "),
 		string(stderr)))
 
@@ -27,7 +28,7 @@ func ExecCommandGetResult(command string, args []string) []string {
 	// 実行
 	err := cmd.Run()
 
-	ExitOnError(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
+	log.ExitOnError(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
 		strings.Join(cmd.Args, " "),
 		stderr.String()))
 

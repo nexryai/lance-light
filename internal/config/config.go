@@ -1,8 +1,9 @@
-package core
+package config
 
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"lance-light/internal/log"
 )
 
 type Config struct {
@@ -107,12 +108,12 @@ type ReportConfig struct {
 func LoadConfig(configFilePath string) Config {
 	// ファイルの読み込み
 	data, err := ioutil.ReadFile(configFilePath)
-	ExitOnError(err, "An error occurred while loading the configuration file. Are the configuration file paths and permissions correct?")
+	log.ExitOnError(err, "An error occurred while loading the configuration file. Are the configuration file paths and permissions correct?")
 
 	// ファイルの内容を構造体にマッピング
 	var config Config
 	err = yaml.Unmarshal(data, &config)
-	ExitOnError(err, "The configuration file was loaded successfully, but the mapping failed.")
+	log.ExitOnError(err, "The configuration file was loaded successfully, but the mapping failed.")
 
 	/*
 		if len(config.Ports) > 0 {

@@ -1,9 +1,9 @@
-package ip
+package iputil
 
 import (
 	"bufio"
 	"fmt"
-	"lance-light/core"
+	"lance-light/internal/log"
 	"net"
 	"net/http"
 	"regexp"
@@ -33,7 +33,7 @@ func isValidIP(ip string) bool {
 func CheckIPAddresses(ipAddresses []string) bool {
 	for _, ip := range ipAddresses {
 		if !isValidIP(ip) {
-			core.MsgWarn("Invalid IP: " + ip)
+			log.MsgWarn("Invalid IP: " + ip)
 			return false
 		}
 	}
@@ -57,10 +57,10 @@ func IsReportableAddress(ip string) bool {
 
 func FetchIpSet(url string, allowIPv6 bool) []string {
 	resp, err := http.Get(url)
-	core.ExitOnError(err, "failed to fetch ipset.")
+	log.ExitOnError(err, "failed to fetch ipset.")
 
 	if resp.StatusCode != 200 {
-		core.ExitOnError(fmt.Errorf("status code: %d", resp.StatusCode), "failed to fetch ipset.")
+		log.ExitOnError(fmt.Errorf("status code: %d", resp.StatusCode), "failed to fetch ipset.")
 	}
 
 	defer resp.Body.Close()
@@ -71,7 +71,7 @@ func FetchIpSet(url string, allowIPv6 bool) []string {
 	for scanner.Scan() {
 		i := scanner.Text()
 		if !isValidIP(i) {
-			core.MsgWarn("Ignore invalid ip")
+			log.MsgWarn("Ignore invalid ip")
 		} else if !allowIPv6 && IsIPv6(i) {
 			// ToDo
 		} else {

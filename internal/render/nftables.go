@@ -2,9 +2,10 @@ package render
 
 import (
 	"fmt"
-	"lance-light/core"
-	"lance-light/entities"
-	"lance-light/ip"
+	"lance-light/internal/config"
+	"lance-light/internal/entities"
+	"lance-light/internal/iputil"
+	"lance-light/internal/log"
 	"strings"
 )
 
@@ -31,7 +32,6 @@ func MkBaseRules(allowed bool, direction string) string {
 
 // FixMe: 関数名おかしい気がする？
 func MkBaseInputRules(allowEstablished bool, allowRelated bool, allowInvalid bool) string {
-
 	establishedRule := "drop"
 	relatedRule := "drop"
 	invalidRule := "drop"
@@ -78,14 +78,14 @@ func MkAllowIPv6Ad() string {
 }
 
 func MkDenyIP(denyIp string) string {
-	if ip.IsIPv6(denyIp) {
+	if iputil.IsIPv6(denyIp) {
 		return fmt.Sprintf("\t\tip6 saddr %s drop", denyIp)
 	} else {
 		return fmt.Sprintf("\t\tip saddr %s drop", denyIp)
 	}
 }
 
-func MkAllowPort(c *core.PortConfig) string {
+func MkAllowPort(c *config.PortConfig) string {
 	rule := "\t\t"
 	var allowIP string
 
@@ -99,7 +99,7 @@ func MkAllowPort(c *core.PortConfig) string {
 
 	var ipVersion int8
 
-	if allowIP == "$CLOUDFLARE_V6" || ip.IsIPv6(allowIP) {
+	if allowIP == "$CLOUDFLARE_V6" || iputil.IsIPv6(allowIP) {
 		ipVersion = 6
 	} else {
 		ipVersion = 4
@@ -107,7 +107,7 @@ func MkAllowPort(c *core.PortConfig) string {
 
 	if c.AllowCountry != "" {
 		if allowIP != "" {
-			core.ExitOnError(fmt.Errorf("invalid config"), "You cannot use both allowCountry and allowIP in the same rule")
+			log.ExitOnError(fmt.Errorf("invalid config"), "You cannot use both allowCountry and allowIP in the same rule")
 		} else {
 			allowIP = fmt.Sprintf("$%s", c.AllowCountry)
 		}
@@ -125,7 +125,7 @@ func MkAllowPort(c *core.PortConfig) string {
 		} else if ipVersion == 6 {
 			rule += fmt.Sprintf("ip6 saddr %s ", allowIP)
 		} else {
-			core.GenBugCodeMessage("fea1507a-6eb7-40d4-a499-1f70ac6fd580")
+			log.GenBugCodeMessage("fea1507a-6eb7-40d4-a499-1f70ac6fd580")
 		}
 	}
 
@@ -147,11 +147,11 @@ func MkAllowLocalhostOutgoing() string {
 	return "\t\tip daddr 127.0.0.1 accept"
 }
 
-func MkAllowOutgoing(c *core.OutgoingAllowConfig) string {
+func MkAllowOutgoing(c *config.OutgoingAllowConfig) string {
 	rule := fmt.Sprintf("\t\t%s dport %s ", c.Proto, c.Dport)
 
 	if c.DstIP != "" {
-		if ip.IsIPv6(c.DstIP) {
+		if iputil.IsIPv6(c.DstIP) {
 			rule += fmt.Sprintf("ip6 daddr %s ", c.DstIP)
 		} else {
 			rule += fmt.Sprintf("ip daddr %s ", c.DstIP)
@@ -175,11 +175,11 @@ func MkAllowFwd(allowInterface string) string {
 	return fmt.Sprintf("\t\tiifname %s accept", allowInterface)
 }
 
-func MkAllowForwardForNat(c *core.NatConfig) string {
+func MkAllowForwardForNat(c *config.NatConfig) string {
 	return fmt.Sprintf("\t\tiifname %s ip saddr %s accept", c.Interface, c.AllowIP)
 }
 
-func MkAllowForwardForCustomRoutes(c *core.CustomRoutesConfig) string {
+func MkAllowForwardForCustomRoutes(c *config.CustomRoutesConfig) string {
 	return fmt.Sprintf("\t\tiifname %s ip saddr %s ip daddr %s accept", c.AllowInterface, c.AllowIP, c.AllowDST)
 }
 
@@ -188,14 +188,14 @@ func MkBaseRoutingRule(route string) string {
 }
 
 func MkMasquerade(srcIP string, outInterface string) string {
-	if ip.IsIPv6(srcIP) {
+	if iputil.IsIPv6(srcIP) {
 		return fmt.Sprintf("\t\tip6 saddr %s oifname %s masquerade", srcIP, outInterface)
 	} else {
 		return fmt.Sprintf("\t\tip saddr %s oifname %s masquerade", srcIP, outInterface)
 	}
 }
 
-func MkMasqueradeForCustomRoutes(c *core.CustomRoutesConfig) string {
+func MkMasqueradeForCustomRoutes(c *config.CustomRoutesConfig) string {
 	return fmt.Sprintf("\t\tiifname %s ip saddr %s ip daddr %s masquerade", c.AllowInterface, c.AllowIP, c.AllowDST)
 }
 
@@ -208,7 +208,7 @@ func MkBaseNatRule() string {
 }
 
 // いつかMkDnatにする
-func MkNat(c *core.NatConfig) string {
+func MkNat(c *config.NatConfig) string {
 	rule := fmt.Sprintf("\t\tiifname \"%s\" ", c.Interface)
 
 	if c.AllowIP != "" {

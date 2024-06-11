@@ -4,15 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang.org/x/exp/slices"
-	"lance-light/core"
-	"lance-light/ip"
+	"lance-light/internal/config"
+	"lance-light/internal/iputil"
+	"lance-light/internal/log"
+	"lance-light/internal/system"
 	"net/http"
 	"regexp"
 	"strconv"
 	"time"
 )
 
-func ReportAbuseIPs(config *core.Config, reportToAbuseIPDB bool) {
+func ReportAbuseIPs(config *config.Config, reportToAbuseIPDB bool) {
 	// journalctlコマンドを実行して出力を取得
 	journalctlArgs := []string{"-xe", "-o", "json", "--grep", "[LanceLight]", "--no-pager", "_TRANSPORT=kernel", "--since", fmt.Sprintf("%d minute ago", config.Report.ReportInterval)}
 
@@ -20,7 +22,7 @@ func ReportAbuseIPs(config *core.Config, reportToAbuseIPDB bool) {
 	srcAndDpt := make(map[string][]int)
 
 	// JSONをパースしてSRCとDPTを抽出し、マップに格納
-	lines := core.ExecCommandGetResult("journalctl", journalctlArgs)
+	lines := system.ExecCommandGetResult("journalctl", journalctlArgs)
 	for _, line := range lines {
 		if len(line) == 0 {
 			continue
@@ -53,19 +55,19 @@ func ReportAbuseIPs(config *core.Config, reportToAbuseIPDB bool) {
 	for srcIp, dportList := range srcAndDpt {
 
 		// 信頼されたグローバルIPか通報できないIPならパス
-		if slices.Contains(config.Report.TrustedIPs, srcIp) || !ip.IsReportableAddress(srcIp) {
+		if slices.Contains(config.Report.TrustedIPs, srcIp) || !iputil.IsReportableAddress(srcIp) {
 			continue
 		}
 
 		comment := fmt.Sprintf("Blocked by LanceLight (%s -> :%v)", srcIp, dportList)
-		core.MsgInfo(comment)
+		log.MsgInfo(comment)
 
 		if reportToAbuseIPDB {
 			fmt.Println("reporting！ ;)")
 			apiKey := config.Report.AbuseIpDbAPIKey
 
 			if apiKey == "" {
-				core.ExitOnError(fmt.Errorf("invalid config file"), "Invalid API Key")
+				log.ExitOnError(fmt.Errorf("invalid config file"), "Invalid API Key")
 			}
 
 			url := "https://api.abuseipdb.com/api/v2/report"
@@ -73,7 +75,7 @@ func ReportAbuseIPs(config *core.Config, reportToAbuseIPDB bool) {
 
 			// HTTPリクエストを作成
 			req, err := http.NewRequest("POST", url, nil)
-			core.ExitOnError(err, "http.NewRequest error")
+			log.ExitOnError(err, "http.NewRequest error")
 
 			// クエリパラメータを追加
 			q := req.URL.Query()
@@ -89,14 +91,14 @@ func ReportAbuseIPs(config *core.Config, reportToAbuseIPDB bool) {
 			// HTTPリクエストを送信
 			client := &http.Client{}
 			resp, err := client.Do(req)
-			core.ExitOnError(err, "http request error")
+			log.ExitOnError(err, "http request error")
 
 			if resp.StatusCode == http.StatusTooManyRequests {
 				// 同じIPを何回も通報すると429になることがあるけど無視する
-				core.MsgDebug("skipped")
+				log.MsgDebug("skipped")
 				time.Sleep(2 * time.Second)
 			} else if resp.StatusCode != http.StatusOK {
-				core.MsgErr("Failed to report. resp: " + resp.Status)
+				log.MsgErr("Failed to report. resp: " + resp.Status)
 			} else {
 				time.Sleep(2 * time.Second)
 			}

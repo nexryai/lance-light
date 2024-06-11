@@ -3,9 +3,10 @@ package render
 import (
 	"fmt"
 	"github.com/lorenzosaino/go-sysctl"
-	"lance-light/core"
-	"lance-light/entities"
-	"lance-light/ip"
+	"lance-light/internal/config"
+	"lance-light/internal/entities"
+	"lance-light/internal/iputil"
+	"lance-light/internal/log"
 )
 
 /*
@@ -21,7 +22,7 @@ func containsString(arr []string, target string) bool {
 	return false
 }
 
-func shouldDefineCloudflareIPs(config *core.Config) bool {
+func shouldDefineCloudflareIPs(config *config.Config) bool {
 	for _, p := range config.Ports {
 		if p.AllowIP == "cloudflare" || p.AllowIP == "cloudflare_v6" {
 			return true
@@ -31,7 +32,7 @@ func shouldDefineCloudflareIPs(config *core.Config) bool {
 	return false
 }
 
-func GenIpDefineRules(config *core.Config) ([]string, error) {
+func GenIpDefineRules(config *config.Config) ([]string, error) {
 	var rules []string
 
 	// CloudflareのIPを取得し定義する
@@ -39,10 +40,10 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 		var clouflareIPsV4 []string
 		var clouflareIPsV6 []string
 
-		clouflareIPsV4 = ip.FetchIpSet("https://www.cloudflare.com/ips-v4", false)
+		clouflareIPsV4 = iputil.FetchIpSet("https://www.cloudflare.com/ips-v4", false)
 
 		if config.Default.EnableIPv6 {
-			clouflareIPsV6 = ip.FetchIpSet("https://www.cloudflare.com/ips-v6", true)
+			clouflareIPsV6 = iputil.FetchIpSet("https://www.cloudflare.com/ips-v6", true)
 		}
 
 		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
@@ -62,7 +63,7 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 
 	for _, c := range countries {
 		url := fmt.Sprintf("https://www.ipdeny.com/ipblocks/data/countries/%s.zone", c)
-		r := MkDefine(c, ip.FetchIpSet(url, false))
+		r := MkDefine(c, iputil.FetchIpSet(url, false))
 		rules = append(rules, r)
 	}
 
@@ -71,7 +72,7 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 		var addrs []string
 
 		if s.Url != "" {
-			addrs = append(addrs, ip.FetchIpSet(s.Url, false)...)
+			addrs = append(addrs, iputil.FetchIpSet(s.Url, false)...)
 		}
 
 		addrs = append(addrs, s.Ip...)
@@ -81,24 +82,24 @@ func GenIpDefineRules(config *core.Config) ([]string, error) {
 	return rules, nil
 }
 
-func GenRulesFromConfig(config *core.Config) []string {
+func GenRulesFromConfig(cfg *config.Config) []string {
 	var rules []string
 
 	// IpDefineFilePathをincludeする
 	// IpDefineFilePathにはCloudflareのIPやAubseIPがキャッシュされている
-	rules = append(rules, MkInclude(config.Nftables.IpDefineFilePath))
+	rules = append(rules, MkInclude(cfg.Nftables.IpDefineFilePath))
 
 	//テーブル作成
 	rules = append(rules, MkTableStart("lance"))
 
-	if config.Default.AllowAllIn {
-		core.MsgWarn("Input is allowed by default. This is a VERY UNSAFE setting. You MUST not use this setting unless you know what you are doing.")
+	if cfg.Default.AllowAllIn {
+		log.MsgWarn("Input is allowed by default. This is a VERY UNSAFE setting. You MUST not use this setting unless you know what you are doing.")
 	}
 
 	// INPUTルール作成
 	rules = append(rules,
 		MkChainStart("input"),
-		MkBaseRules(config.Default.AllowAllIn, "input"))
+		MkBaseRules(cfg.Default.AllowAllIn, "input"))
 
 	// これは変えられるようにするべき？
 	rules = append(rules,
@@ -106,17 +107,17 @@ func GenRulesFromConfig(config *core.Config) []string {
 		MkAllowLoopbackInterface())
 
 	var alwaysDenyIP []string
-	alwaysDenyIP = append(alwaysDenyIP, config.Security.AlwaysDenyIP...)
+	alwaysDenyIP = append(alwaysDenyIP, cfg.Security.AlwaysDenyIP...)
 
 	// alwaysDenyASNをIPのCIDRに変換
-	for _, denyASN := range config.Security.AlwaysDenyASN {
-		alwaysDenyIP = append(alwaysDenyIP, ip.GetIpRangeFromASN(denyASN)...)
+	for _, denyASN := range cfg.Security.AlwaysDenyASN {
+		alwaysDenyIP = append(alwaysDenyIP, iputil.GetIpRangeFromASN(denyASN)...)
 	}
 
 	// AlwaysDenyTorならTorのIPを拒否
 	// Torの出口のIPは頻繁に変動するため、将来的にキャッシュの対象となるGenIpDefineRulesで生成せずここで毎回取得する
-	if config.Security.AlwaysDenyTor {
-		for _, denyIP := range ip.FetchIpSet("https://check.torproject.org/torbulkexitlist?ip=1.1.1.1", false) {
+	if cfg.Security.AlwaysDenyTor {
+		for _, denyIP := range iputil.FetchIpSet("https://check.torproject.org/torbulkexitlist?ip=1.1.1.1", false) {
 			alwaysDenyIP = append(alwaysDenyIP, denyIP)
 		}
 	}
@@ -127,16 +128,16 @@ func GenRulesFromConfig(config *core.Config) []string {
 	}
 
 	// pingを許可するなら許可
-	if config.Default.AllowPing {
+	if cfg.Default.AllowPing {
 		rules = append(rules, MkAllowPing(), MkAllowPingICMPv6())
 	}
 
-	if config.Security.AlwaysDenyAbuseIP {
-		core.MsgDebug("Always Deny AbuseIP")
+	if cfg.Security.AlwaysDenyAbuseIP {
+		log.MsgDebug("Always Deny AbuseIP")
 	}
 
 	// IPv6関係
-	if config.Default.EnableIPv6 {
+	if cfg.Default.EnableIPv6 {
 		rules = append(rules, MkAllowIPv6Ad())
 	}
 
@@ -144,7 +145,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 	rules = append(rules, MkJumpToSynFloodLimiter())
 
 	// 許可したポートをallow
-	for _, r := range config.Ports {
+	for _, r := range cfg.Ports {
 		if r.AllowIP != "" && r.AllowCountry != "" {
 			// AllowCountryが設定されているとAllowIPが上書きされてしまうので対策
 			r.AllowIP = fmt.Sprintf("{ $%s, %s }", r.AllowCountry, r.AllowIP)
@@ -162,7 +163,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 	}
 
 	// ログが有効ならログする
-	if config.Default.EnableLogging {
+	if cfg.Default.EnableLogging {
 		rules = append(rules, MkLoggingRules("drop"))
 	}
 
@@ -171,20 +172,20 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 	// OUTPUTチェーン
 	rules = append(rules, MkChainStart("output"),
-		MkBaseRules(config.Default.AllowAllOut, "output"))
+		MkBaseRules(cfg.Default.AllowAllOut, "output"))
 
-	if !config.Default.AllowAllOut {
+	if !cfg.Default.AllowAllOut {
 		// ICMPとループバックは許可
 		rules = append(rules, MkAllowLoopbackInterface(),
 			MkAllowIcmpOutgoing(),
 			MkAllowLocalhostOutgoing())
 
 		// IPv6が有効ならIPv6のICMPも許可
-		if config.Default.EnableIPv6 {
+		if cfg.Default.EnableIPv6 {
 			rules = append(rules, MkAllowIcmpv6Outgoing())
 		}
 
-		for _, r := range config.Outgoing.Allowed {
+		for _, r := range cfg.Outgoing.Allowed {
 			if r.Proto == "" {
 				r.Proto = "tcp"
 				rules = append(rules, MkAllowOutgoing(&r))
@@ -197,11 +198,11 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 		// Tailscaleと併用できるようにする (https://tailscale.com/kb/1082/firewall-ports)
 		//  - 41641への発信と3478への発信を許可する
-		if containsString(config.Outgoing.Compatibility, "tailscale") {
-			rules = append(rules, MkAllowOutgoing(&core.OutgoingAllowConfig{
+		if containsString(cfg.Outgoing.Compatibility, "tailscale") {
+			rules = append(rules, MkAllowOutgoing(&config.OutgoingAllowConfig{
 				Dport: "41641",
 				Proto: "udp",
-			}), MkAllowOutgoing(&core.OutgoingAllowConfig{
+			}), MkAllowOutgoing(&config.OutgoingAllowConfig{
 				Dport: "3478",
 				Proto: "udp",
 			}))
@@ -209,14 +210,14 @@ func GenRulesFromConfig(config *core.Config) []string {
 
 		// Cloudflaredと併用できるようにする
 		// https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/deploy-tunnels/tunnel-with-firewall/
-		if containsString(config.Outgoing.Compatibility, "cloudflare_tunnel") {
-			rules = append(rules, MkAllowOutgoing(&core.OutgoingAllowConfig{
+		if containsString(cfg.Outgoing.Compatibility, "cloudflare_tunnel") {
+			rules = append(rules, MkAllowOutgoing(&config.OutgoingAllowConfig{
 				Dport: "7844",
 				Proto: "tcp",
-			}), MkAllowOutgoing(&core.OutgoingAllowConfig{
+			}), MkAllowOutgoing(&config.OutgoingAllowConfig{
 				Dport: "7844",
 				Proto: "udp",
-			}), MkAllowOutgoing(&core.OutgoingAllowConfig{
+			}), MkAllowOutgoing(&config.OutgoingAllowConfig{
 				Dport: "443",
 				Proto: "tcp",
 			}))
@@ -226,7 +227,7 @@ func GenRulesFromConfig(config *core.Config) []string {
 		rules = append(rules, MkAllowNonSynOutgoing())
 
 		// ログが有効ならログする
-		if config.Default.EnableLogging {
+		if cfg.Default.EnableLogging {
 			rules = append(rules, MkLoggingForOutgoing())
 		}
 	}
@@ -236,30 +237,30 @@ func GenRulesFromConfig(config *core.Config) []string {
 	// FORWARDチェーン
 	rules = append(rules, MkChainStart("forward"))
 
-	if config.Default.AllowAllFwd {
-		core.MsgWarn("Forwarding is allowed by default. This is an unsafe setting and you usually don't need to do this.")
+	if cfg.Default.AllowAllFwd {
+		log.MsgWarn("Forwarding is allowed by default. This is an unsafe setting and you usually don't need to do this.")
 	}
 
-	rules = append(rules, MkBaseRules(config.Default.AllowAllFwd, "forward"))
+	rules = append(rules, MkBaseRules(cfg.Default.AllowAllFwd, "forward"))
 
 	// ルーターとして構成するならLAN→WANへのマスカレードを許可する
-	if config.Router.ConfigAsRouter {
+	if cfg.Router.ConfigAsRouter {
 		rules = append(rules, MkBaseInputRules(true, true, false))
 
-		for _, lanInterface := range config.Router.LANInterfaces {
+		for _, lanInterface := range cfg.Router.LANInterfaces {
 			rules = append(rules, MkAllowFwd(lanInterface))
 		}
 
 		// カスタムルート設定時にForward許可する
-		for _, r := range config.Router.CustomRoutes {
+		for _, r := range cfg.Router.CustomRoutes {
 			rules = append(rules, MkAllowForwardForCustomRoutes(&r))
 		}
 
 	}
 
 	// ポート転送構成時にForwardを許可する
-	if len(config.Nat) != 0 {
-		for _, r := range config.Nat {
+	if len(cfg.Nat) != 0 {
+		for _, r := range cfg.Nat {
 			rules = append(rules, MkAllowForwardForNat(&r))
 		}
 	}
@@ -267,13 +268,13 @@ func GenRulesFromConfig(config *core.Config) []string {
 	rules = append(rules, MkChainEnd())
 
 	// POSTROUTINGチェーン
-	if config.Router.ConfigAsRouter || len(config.Nat) != 0 {
+	if cfg.Router.ConfigAsRouter || len(cfg.Nat) != 0 {
 		sysctlIpForward, err := sysctl.Get("net.ipv4.ip_forward")
 
 		if err != nil {
-			core.MsgWarn("Failed to get sysctl value")
+			log.MsgWarn("Failed to get sysctl value")
 		} else if sysctlIpForward == "0" {
-			core.MsgWarn("net.ipv4.ip_forward is set to 0.")
+			log.MsgWarn("net.ipv4.ip_forward is set to 0.")
 		}
 
 		rules = append(rules,
@@ -281,11 +282,11 @@ func GenRulesFromConfig(config *core.Config) []string {
 			MkBaseRoutingRule("postrouting"))
 
 		// DNATするときの戻り通信用SNAT
-		if len(config.Nat) != 0 {
-			for _, c := range config.Nat {
-				internalIP, err := ip.ExtractIPAddress(c.NatTo)
+		if len(cfg.Nat) != 0 {
+			for _, c := range cfg.Nat {
+				internalIP, err := iputil.ExtractIPAddress(c.NatTo)
 				if err != nil {
-					panic("invalid ip in config")
+					panic("invalid ip in cfg")
 				}
 
 				snat := entities.SnatForDnat{
@@ -297,14 +298,14 @@ func GenRulesFromConfig(config *core.Config) []string {
 			}
 		}
 
-		if config.Router.ConfigAsRouter {
+		if cfg.Router.ConfigAsRouter {
 			// ルーターとして構成するときのLAN→WANのマスカレード
-			for _, privateNetworkAddress := range config.Router.PrivateNetworkAddresses {
-				rules = append(rules, MkMasquerade(privateNetworkAddress, config.Router.WANInterface))
+			for _, privateNetworkAddress := range cfg.Router.PrivateNetworkAddresses {
+				rules = append(rules, MkMasquerade(privateNetworkAddress, cfg.Router.WANInterface))
 			}
 
 			// カスタムルート設定時のマスカレード設定
-			for _, r := range config.Router.CustomRoutes {
+			for _, r := range cfg.Router.CustomRoutes {
 				rules = append(rules, MkMasqueradeForCustomRoutes(&r))
 			}
 		}
@@ -315,35 +316,35 @@ func GenRulesFromConfig(config *core.Config) []string {
 	// PREROUTINGチェーン
 	rules = append(rules, MkChainStart("prerouting"))
 
-	if config.Router.ConfigAsRouter {
+	if cfg.Router.ConfigAsRouter {
 		rules = append(rules, MkBaseRoutingRule("prerouting"))
-	} else if len(config.Nat) != 0 {
+	} else if len(cfg.Nat) != 0 {
 		rules = append(rules, MkBaseNatRule())
 	}
 
 	// 不正なパケットととりあえず全部弾くべき攻撃を遮断
 	// inputチェーンよりpreroutingの方が優先されるのでここに入れる
 	rules = append(rules, MkDropInvalid())
-	if !config.Security.DisablePortScanProtection {
+	if !cfg.Security.DisablePortScanProtection {
 		rules = append(rules, MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
 	} else {
-		core.MsgWarn("Port scan protection is DISABLED!")
+		log.MsgWarn("Port scan protection is DISABLED!")
 	}
 
-	if !config.Security.DisableIpFragmentsBlock {
+	if !cfg.Security.DisableIpFragmentsBlock {
 		rules = append(rules, MkBlockIPFragments())
 	}
 
-	if config.Router.ForceDNS != "" {
-		for _, lanInterface := range config.Router.LANInterfaces {
-			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "udp"))
-			rules = append(rules, MkForceDNS(config.Router.ForceDNS, lanInterface, "tcp"))
+	if cfg.Router.ForceDNS != "" {
+		for _, lanInterface := range cfg.Router.LANInterfaces {
+			rules = append(rules, MkForceDNS(cfg.Router.ForceDNS, lanInterface, "udp"))
+			rules = append(rules, MkForceDNS(cfg.Router.ForceDNS, lanInterface, "tcp"))
 		}
 	}
 
 	// ポート転送有効時のNAT構成
-	if len(config.Nat) != 0 {
-		for _, r := range config.Nat {
+	if len(cfg.Nat) != 0 {
+		for _, r := range cfg.Nat {
 			rules = append(rules, MkNat(&r))
 		}
 	}
