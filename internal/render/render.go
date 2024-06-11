@@ -106,8 +106,20 @@ func GenRulesFromConfig(cfg *config.Config) []string {
 		MkBaseInputRules(true, true, false),
 		MkAllowLoopbackInterface())
 
-	var alwaysDenyIP []string
-	alwaysDenyIP = append(alwaysDenyIP, cfg.Security.AlwaysDenyIP...)
+	// 不正なパケットとポートスキャンをブロック
+	rules = append(rules, MkDropInvalid())
+	if !cfg.Security.DisablePortScanProtection {
+		rules = append(rules, MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
+	} else {
+		log.MsgWarn("Port scan protection is DISABLED!")
+	}
+
+	if !cfg.Security.DisableIpFragmentsBlock {
+		rules = append(rules, MkBlockIPFragments())
+	}
+
+	// AlwaysDenyIPとAlwaysDenyASNのCIDRを格納する
+	alwaysDenyIP := cfg.Security.AlwaysDenyIP
 
 	// alwaysDenyASNをIPのCIDRに変換
 	for _, denyASN := range cfg.Security.AlwaysDenyASN {
@@ -314,42 +326,31 @@ func GenRulesFromConfig(cfg *config.Config) []string {
 	}
 
 	// PREROUTINGチェーン
-	rules = append(rules, MkChainStart("prerouting"))
+	if cfg.Router.ConfigAsRouter || len(cfg.Nat) != 0 {
+		rules = append(rules, MkChainStart("prerouting"))
 
-	if cfg.Router.ConfigAsRouter {
-		rules = append(rules, MkBaseRoutingRule("prerouting"))
-	} else if len(cfg.Nat) != 0 {
-		rules = append(rules, MkBaseNatRule())
-	}
-
-	// 不正なパケットととりあえず全部弾くべき攻撃を遮断
-	// inputチェーンよりpreroutingの方が優先されるのでここに入れる
-	rules = append(rules, MkDropInvalid())
-	if !cfg.Security.DisablePortScanProtection {
-		rules = append(rules, MkBlockTcpXmas(), MkBlockTcpNull(), MkBlockTcpMss())
-	} else {
-		log.MsgWarn("Port scan protection is DISABLED!")
-	}
-
-	if !cfg.Security.DisableIpFragmentsBlock {
-		rules = append(rules, MkBlockIPFragments())
-	}
-
-	if cfg.Router.ForceDNS != "" {
-		for _, lanInterface := range cfg.Router.LANInterfaces {
-			rules = append(rules, MkForceDNS(cfg.Router.ForceDNS, lanInterface, "udp"))
-			rules = append(rules, MkForceDNS(cfg.Router.ForceDNS, lanInterface, "tcp"))
+		if cfg.Router.ConfigAsRouter {
+			rules = append(rules, MkBaseRoutingRule("prerouting"))
+		} else if len(cfg.Nat) != 0 {
+			rules = append(rules, MkBaseNatRule())
 		}
-	}
 
-	// ポート転送有効時のNAT構成
-	if len(cfg.Nat) != 0 {
-		for _, r := range cfg.Nat {
-			rules = append(rules, MkNat(&r))
+		if cfg.Router.ForceDNS != "" {
+			for _, lanInterface := range cfg.Router.LANInterfaces {
+				rules = append(rules, MkForceDNS(cfg.Router.ForceDNS, lanInterface, "udp"))
+				rules = append(rules, MkForceDNS(cfg.Router.ForceDNS, lanInterface, "tcp"))
+			}
 		}
-	}
 
-	rules = append(rules, MkChainEnd())
+		// ポート転送有効時のNAT構成
+		if len(cfg.Nat) != 0 {
+			for _, r := range cfg.Nat {
+				rules = append(rules, MkNat(&r))
+			}
+		}
+
+		rules = append(rules, MkChainEnd())
+	}
 
 	// SYN-flood対策
 	rules = append(rules, MkChainStart("syn-flood"),
