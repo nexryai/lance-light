@@ -7,7 +7,6 @@ import (
 	"lance-light/internal/log"
 	"lance-light/internal/render"
 	"lance-light/internal/system"
-	"lance-light/report"
 	"os"
 )
 
@@ -124,8 +123,6 @@ func main() {
 		// 設定をアンロードする
 		flushNftablesRules()
 		log.MsgInfo("LanceLight firewall is disabled.")
-	} else if operation == "report" {
-		report.ReportAbuseIPs(&config, true)
 	} else if operation == "" {
 		//コマンド説明
 		showHelp()
