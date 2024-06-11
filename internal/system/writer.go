@@ -1,7 +1,6 @@
 package system
 
 import (
-	"io/ioutil"
 	"lance-light/internal/log"
 	"os"
 	"strings"
@@ -20,7 +19,7 @@ func WriteToFile(content []string, path string) {
 		defer file.Close()
 	}
 
-	err := ioutil.WriteFile(path, []byte(contentString), os.ModePerm)
+	err := os.WriteFile(path, []byte(contentString), os.ModePerm)
 	if err != nil {
 		log.MsgFatalAndExit(err, "Failed to write rules.")
 	}

@@ -2,8 +2,8 @@ package config
 
 import (
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"lance-light/internal/log"
+	"os"
 )
 
 type Config struct {
@@ -98,7 +98,7 @@ type ReportConfig struct {
 
 func LoadConfig(configFilePath string) Config {
 	// ファイルの読み込み
-	data, err := ioutil.ReadFile(configFilePath)
+	data, err := os.ReadFile(configFilePath)
 	if err != nil {
 		log.MsgFatalAndExit(err, "An error occurred while loading the configuration file. Are the configuration file paths and permissions correct?")
 	}
