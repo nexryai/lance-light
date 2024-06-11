@@ -22,28 +22,28 @@ func checkConfigFile(path string) {
 	system.ExecCommand("nft", []string{"--check", "-f", path})
 }
 
-func writeRulesFromConfig(config *config.Config) bool {
+func writeRulesFromConfig(cfg *config.Config) bool {
 	// ipdefine.conf (IPのリストを定義するやつ)を生成
-	ipDefineRules, err := render.GenIpDefineRules(config)
+	ipDefineRules, err := render.GenIpDefineRules(cfg)
 	if err != nil {
 		log.ExitOnError(err, "Network Error. Please use offline mode!")
 	} else {
-		system.WriteToFile(ipDefineRules, config.Nftables.IpDefineFilePath)
+		system.WriteToFile(ipDefineRules, cfg.Nftables.IpDefineFilePath)
 	}
 
 	// nftablesルールを生成
-	rules := render.GenRulesFromConfig(config)
-	system.WriteToFile(rules, config.Nftables.NftablesFilePath)
+	rules := render.GenRulesFromConfig(cfg)
+	system.WriteToFile(rules, cfg.Nftables.NftablesFilePath)
 	return true
 }
 
-func exportRulesFromConfig(config *config.Config) bool {
-	ipDefineRules, _ := render.GenIpDefineRules(config)
+func exportRulesFromConfig(cfg *config.Config) bool {
+	ipDefineRules, _ := render.GenIpDefineRules(cfg)
 	for _, item := range ipDefineRules {
 		fmt.Println(item)
 	}
 
-	rules := render.GenRulesFromConfig(config)
+	rules := render.GenRulesFromConfig(cfg)
 	for _, item := range rules {
 		fmt.Println(item)
 	}
@@ -62,7 +62,7 @@ func showHelp() {
 }
 
 func main() {
-	configFilePath := flag.String("f", "/etc/lance.yml", "Path of config.yml")
+	configFilePath := flag.String("f", "/etc/lance.yml", "Path of cfg.yml")
 	debugMode := flag.Bool("debug", false, "Enable debug mode")
 
 	flag.Parse()
@@ -80,45 +80,45 @@ func main() {
 
 	log.MsgDebug("configFilePath: " + *configFilePath)
 
-	config := config.LoadConfig(*configFilePath)
+	cfg := config.LoadConfig(*configFilePath)
 
-	if config.Nftables.NftablesFilePath == "" {
-		config.Nftables.NftablesFilePath = "/etc/nftables.lance.conf"
+	if cfg.Nftables.NftablesFilePath == "" {
+		cfg.Nftables.NftablesFilePath = "/etc/nftables.lance.conf"
 	}
 
-	if config.Nftables.IpDefineFilePath == "" {
-		config.Nftables.IpDefineFilePath = "/etc/nftables.ipdefine.conf"
+	if cfg.Nftables.IpDefineFilePath == "" {
+		cfg.Nftables.IpDefineFilePath = "/etc/nftables.ipdefine.conf"
 	}
 
 	operation := flag.Arg(0)
 
 	if operation == "apply" {
-		writeRulesFromConfig(&config)
-		checkConfigFile(config.Nftables.NftablesFilePath)
+		writeRulesFromConfig(&cfg)
+		checkConfigFile(cfg.Nftables.NftablesFilePath)
 
 		// nftコマンドを実行して適用
 		flushNftablesRules()
-		applyNftablesRules(config.Nftables.NftablesFilePath)
+		applyNftablesRules(cfg.Nftables.NftablesFilePath)
 
 		log.MsgInfo("Firewall settings have been applied successfully.")
 	} else if operation == "enable" {
-		writeRulesFromConfig(&config)
-		checkConfigFile(config.Nftables.NftablesFilePath)
+		writeRulesFromConfig(&cfg)
+		checkConfigFile(cfg.Nftables.NftablesFilePath)
 
 		// nftコマンドを実行して適用
-		applyNftablesRules(config.Nftables.NftablesFilePath)
+		applyNftablesRules(cfg.Nftables.NftablesFilePath)
 		log.MsgInfo("LanceLight firewall is enabled.")
 	} else if operation == "offline" {
 		// Q.これは何
 		// A.オフライン環境だとレンダリングできない（CloudflareのIPなどが取得できない）。起動直後などのオフラインな環境でも最低限の保護を有効にするため、一旦lance.ymlの変更を反映せずとりあえず古いルールをロードだけする。
 
 		// nftコマンドを実行して適用
-		applyNftablesRules(config.Nftables.NftablesFilePath)
+		applyNftablesRules(cfg.Nftables.NftablesFilePath)
 		log.MsgInfo("LanceLight firewall is enabled. (Offline mode!)")
 	} else if operation == "export" {
 		// エクスポート
 		log.MsgDebug(fmt.Sprintf("configFilePath: %s", *configFilePath))
-		exportRulesFromConfig(&config)
+		exportRulesFromConfig(&cfg)
 	} else if operation == "disable" {
 		// 設定をアンロードする
 		flushNftablesRules()
