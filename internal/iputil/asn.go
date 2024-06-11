@@ -26,31 +26,38 @@ func GetIpRangeFromASN(asn string) []string {
 	log.MsgDebug("send request: " + url)
 
 	response, err := http.Get(url)
-	log.ExitOnError(err, "Failed to convert ASN to IP CIDR. Request did not succeed.")
+	if err != nil {
+		log.MsgFatalAndExit(err, "Failed to convert ASN to IP CIDR. Request did not succeed.")
+	}
+
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusOK {
 		body, err := io.ReadAll(response.Body)
-		log.ExitOnError(err, "Failed to convert ASN to IP CIDR. The request was successful, but parsing failed.")
+		if err != nil {
+			log.MsgFatalAndExit(err, "Failed to convert ASN to IP CIDR. The request was successful, but parsing failed.")
+		}
 
 		var data struct {
 			Data PrefixData `json:"data"`
 		}
 
 		err = json.Unmarshal(body, &data)
-		log.ExitOnError(err, "Failed to convert ASN to IP CIDR. The request was successful, but parsing failed.")
+		if err != nil {
+			log.MsgFatalAndExit(err, "Failed to convert ASN to IP CIDR. The request was successful, but parsing failed.")
+		}
 
 		for _, prefix := range data.Data.Prefixes {
 			ipCidr = append(ipCidr, prefix.Prefix)
 		}
 
 	} else {
-		log.ExitOnError(errors.New("request failed"), "Failed to convert ASN to IP CIDR. An error code was returned from the server.")
+		log.MsgFatalAndExit(errors.New("request failed"), "Failed to convert ASN to IP CIDR. An error code was returned from the server.")
 	}
 
 	//念のため確認
 	if !CheckIPAddresses(ipCidr) {
-		log.ExitOnError(errors.New("invalid IP from api"), "Failed to convert ASN to IP CIDR. The request was successful, but an invalid IP address was detected.")
+		log.MsgFatalAndExit(errors.New("invalid IP from api"), "Failed to convert ASN to IP CIDR. The request was successful, but an invalid IP address was detected.")
 	}
 
 	return ipCidr

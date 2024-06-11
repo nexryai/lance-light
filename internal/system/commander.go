@@ -12,10 +12,11 @@ func ExecCommand(command string, args []string) {
 	cmd := exec.Command(command, args...)
 	stderr, err := cmd.CombinedOutput()
 
-	log.ExitOnError(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
-		strings.Join(cmd.Args, " "),
-		string(stderr)))
-
+	if err == nil {
+		log.MsgFatalAndExit(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
+			strings.Join(cmd.Args, " "),
+			string(stderr)))
+	}
 }
 
 func ExecCommandGetResult(command string, args []string) []string {
@@ -27,10 +28,11 @@ func ExecCommandGetResult(command string, args []string) []string {
 
 	// 実行
 	err := cmd.Run()
-
-	log.ExitOnError(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
-		strings.Join(cmd.Args, " "),
-		stderr.String()))
+	if err != nil {
+		log.MsgFatalAndExit(err, fmt.Sprintf("Failed to exec.　| \"%s\" >>> %s",
+			strings.Join(cmd.Args, " "),
+			stderr.String()))
+	}
 
 	output := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
 	return output

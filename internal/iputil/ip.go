@@ -57,10 +57,12 @@ func IsReportableAddress(ip string) bool {
 
 func FetchIpSet(url string, allowIPv6 bool) []string {
 	resp, err := http.Get(url)
-	log.ExitOnError(err, "failed to fetch ipset.")
+	if err != nil {
+		log.MsgFatalAndExit(err, "failed to fetch ipset.")
+	}
 
 	if resp.StatusCode != 200 {
-		log.ExitOnError(fmt.Errorf("status code: %d", resp.StatusCode), "failed to fetch ipset.")
+		log.MsgFatalAndExit(fmt.Errorf("status code: %d", resp.StatusCode), "failed to fetch ipset.")
 	}
 
 	defer resp.Body.Close()

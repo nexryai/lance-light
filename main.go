@@ -26,7 +26,7 @@ func writeRulesFromConfig(cfg *config.Config) bool {
 	// ipdefine.conf (IPのリストを定義するやつ)を生成
 	ipDefineRules, err := render.GenIpDefineRules(cfg)
 	if err != nil {
-		log.ExitOnError(err, "Network Error. Please use offline mode!")
+		log.MsgFatalAndExit(err, "Network Error. Please use offline mode!")
 	} else {
 		system.WriteToFile(ipDefineRules, cfg.Nftables.IpDefineFilePath)
 	}
@@ -72,10 +72,14 @@ func main() {
 	if *debugMode {
 		log.MsgInfo("debug mode!")
 		err := os.Setenv("LANCE_DEBUG_MODE", "true")
-		log.ExitOnError(err, "Failed to set environment variable.")
+		if err != nil {
+			log.MsgFatalAndExit(err, "Failed to set environment variable.")
+		}
 	} else {
 		err := os.Setenv("LANCE_DEBUG_MODE", "false")
-		log.ExitOnError(err, "Failed to set environment variable.")
+		if err != nil {
+			log.MsgFatalAndExit(err, "Failed to set environment variable.")
+		}
 	}
 
 	log.MsgDebug("configFilePath: " + *configFilePath)

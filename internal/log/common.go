@@ -41,15 +41,11 @@ func MsgDetail(text string) {
 	fmt.Println(gray + "  ↳ " + reset + text)
 }
 
-func ExitOnError(err error, message string) {
-	if err != nil {
-		errorInfo := fmt.Sprintf("Fatal error: %v", err)
-		MsgErr(errorInfo)
-		MsgDetail(message)
-		os.Exit(1)
-	}
-
-	return
+func MsgFatalAndExit(err error, message string) {
+	errorInfo := fmt.Sprintf("Fatal error: %v", err)
+	MsgErr(errorInfo)
+	MsgDetail(message)
+	os.Exit(1)
 }
 
 func GetUnixTimestampString() string {

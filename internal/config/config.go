@@ -99,19 +99,16 @@ type ReportConfig struct {
 func LoadConfig(configFilePath string) Config {
 	// ファイルの読み込み
 	data, err := ioutil.ReadFile(configFilePath)
-	log.ExitOnError(err, "An error occurred while loading the configuration file. Are the configuration file paths and permissions correct?")
+	if err != nil {
+		log.MsgFatalAndExit(err, "An error occurred while loading the configuration file. Are the configuration file paths and permissions correct?")
+	}
 
 	// ファイルの内容を構造体にマッピング
 	var config Config
 	err = yaml.Unmarshal(data, &config)
-	log.ExitOnError(err, "The configuration file was loaded successfully, but the mapping failed.")
-
-	/*
-		if len(config.Ports) > 0 {
-			allowIPs := config.Ports[0].AllowIPs
-			fmt.Println("allowIPs:", allowIPs)
-		}
-	*/
+	if err != nil {
+		log.MsgFatalAndExit(err, "The configuration file was loaded successfully, but the mapping failed.")
+	}
 
 	return config
 }
