@@ -1,7 +1,6 @@
 package render
 
 import (
-	"fmt"
 	"github.com/lorenzosaino/go-sysctl"
 	"lance-light/internal/config"
 	"lance-light/internal/iputil"
@@ -47,24 +46,6 @@ func GenIpDefineRules(config *config.Config) ([]string, error) {
 		}
 
 		rules = append(rules, MkDefine("CLOUDFLARE", clouflareIPsV4), MkDefine("CLOUDFLARE_V6", clouflareIPsV6))
-	}
-
-	// AllowCountryに存在する国コードのIPを取得し定義する
-	var countries []string
-	seen := make(map[string]bool)
-
-	for _, p := range config.Ports {
-		c := p.AllowCountry
-		if !seen[c] && c != "" {
-			countries = append(countries, c)
-			seen[c] = true
-		}
-	}
-
-	for _, c := range countries {
-		url := fmt.Sprintf("https://www.ipdeny.com/ipblocks/data/countries/%s.zone", c)
-		r := MkDefine(c, iputil.FetchIpSet(url, false))
-		rules = append(rules, r)
 	}
 
 	// ユーザー定義のipsetをロードする
@@ -154,12 +135,6 @@ func GenRulesFromConfig(cfg *config.Config) []string {
 
 	// 許可したポートをallow
 	for _, r := range cfg.Ports {
-		if r.AllowIP != "" && r.AllowCountry != "" {
-			// AllowCountryが設定されているとAllowIPが上書きされてしまうので対策
-			r.AllowIP = fmt.Sprintf("{ $%s, %s }", r.AllowCountry, r.AllowIP)
-			r.AllowCountry = ""
-		}
-
 		if r.Proto == "" {
 			r.Proto = "tcp"
 			rules = append(rules, MkAllowPort(&r))
