@@ -144,10 +144,6 @@ func GenRulesFromConfig(cfg *config.Config) []string {
 		rules = append(rules, MkAllowPing(), MkAllowPingICMPv6())
 	}
 
-	if cfg.Security.AlwaysDenyAbuseIP {
-		log.MsgDebug("Always Deny AbuseIP")
-	}
-
 	// IPv6関係
 	if cfg.Default.EnableIPv6 {
 		rules = append(rules, MkAllowIPv6Ad())
