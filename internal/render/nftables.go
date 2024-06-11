@@ -105,14 +105,6 @@ func MkAllowPort(c *config.PortConfig) string {
 		ipVersion = 4
 	}
 
-	if c.AllowCountry != "" {
-		if allowIP != "" {
-			log.ExitOnError(fmt.Errorf("invalid config"), "You cannot use both allowCountry and allowIP in the same rule")
-		} else {
-			allowIP = fmt.Sprintf("$%s", c.AllowCountry)
-		}
-	}
-
 	if c.AllowInterface != "" {
 		rule += fmt.Sprintf("iifname \"%s\" ", c.AllowInterface)
 	}
