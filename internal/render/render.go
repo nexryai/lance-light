@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/lorenzosaino/go-sysctl"
 	"lance-light/internal/config"
-	"lance-light/internal/entities"
 	"lance-light/internal/iputil"
 	"lance-light/internal/log"
+	"lance-light/internal/model"
 )
 
 /*
@@ -289,7 +289,7 @@ func GenRulesFromConfig(cfg *config.Config) []string {
 					panic("invalid ip in cfg")
 				}
 
-				snat := entities.SnatForDnat{
+				snat := model.SnatForDnat{
 					ExternalInterface: c.Interface,
 					InternalIP:        internalIP,
 					ExternalIP:        c.DstIP,

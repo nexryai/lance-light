@@ -1,4 +1,4 @@
-package entities
+package model
 
 // core.Configではなく今後はentitiesを使うようにする
 

@@ -3,9 +3,9 @@ package render
 import (
 	"fmt"
 	"lance-light/internal/config"
-	"lance-light/internal/entities"
 	"lance-light/internal/iputil"
 	"lance-light/internal/log"
+	"lance-light/internal/model"
 	"strings"
 )
 
@@ -219,7 +219,7 @@ func MkNat(c *config.NatConfig) string {
 	return rule
 }
 
-func MkSnatForDnat(c *entities.SnatForDnat) string {
+func MkSnatForDnat(c *model.SnatForDnat) string {
 	return fmt.Sprintf("\t\toifname %s ip saddr %s counter snat to %s",
 		c.ExternalInterface, c.InternalIP, c.ExternalIP)
 }
