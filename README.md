@@ -45,16 +45,9 @@ sudo make install
 ```
 
 ### 既知の問題
-#### IPv6のIPを指定しても許可されない / IPv6アドレスを入れるとエラーになることがある / AllowIP: "cloudflarev6"が効かない
-IPv4を使ってください  
-詳細は[issue](https://github.com/nexryai/lance-light/issues/14)参照
-
 #### RHEL系に入れたらsystemd経由で扱おうとするとPermissionで文句言われる
 SELinuxのせいです。  
-`sudo restorecon -R /usr/local/llfctl`で解決します。
+`sudo restorecon -R /usr/bin/llfctl`で解決します。
 
 #### Dockerと競合する
 `allowAllFwd`をtrueにすれば回避できます。
-
-### Special Thanks
- - ChatGPT
