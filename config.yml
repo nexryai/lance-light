@@ -39,7 +39,6 @@ ports:
   - port: 22
     proto: "tcp"
     allowIP: "$TRUSTED"
-    allowCountry: "jp"
 
   - port: 3000
     allowIP: "192.168.1.0/24"
@@ -79,9 +78,6 @@ router:
 
   # LAN内のデバイスに特定のDNSを強制する（AdGuard Home使用時などに有効）
   forceDNS: "192.168.0.1"
-
-  # NAT66を有効にする
-
 
   # カスタムルート設定
   # LAN→WAN以外も許可したいとき（例えばVPNからLANへのアクセスを許可したい場合）などに使う
